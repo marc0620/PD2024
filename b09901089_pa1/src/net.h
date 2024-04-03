@@ -17,7 +17,7 @@ public:
     // basic access methods
     string getName()           const { return _name; }
     int getPartCount(int part) const { return _partCount[part]; }
-    vector<int> getCellList()  const { return _cellList; }
+    vector<int> ()  const { return _cellList; }
 
     // set functions
     void setName(const string name) { _name = name; }

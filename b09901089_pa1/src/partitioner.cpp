@@ -65,7 +65,11 @@ void Partitioner::parseInput(fstream& inFile)
 
 void Partitioner::partition()
 {
-
+  //init gain calculation
+  for(int i; i< getNetNum();i++){
+    _netArray[i]
+  }
+  
 }
 
 void Partitioner::printSummary() const

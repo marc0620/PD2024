@@ -1,5 +1,5 @@
 CC=g++
-LDFLAGS=-std=c++11 -O3 -lm -fsanitize=address
+LDFLAGS=-std=c++11 -O3 -lm -fsanitize=address -g
 SOURCES=src/partitioner.cpp src/main.cpp
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE=fm

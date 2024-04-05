@@ -34,6 +34,7 @@ public:
   void reportNet() const;
   void reportCell() const;
   void writeResult(fstream &outFile);
+  void printslist();
 
 private:
   int _cutSize;                 // cut size
@@ -56,12 +57,17 @@ private:
   int _iterNum;                    // number of iterations
   int _bestMoveNum;                // store best number of movements
   int _unlockNum[2];               // number of unlocked cells
-  int _threshold;
+  map<int,int> _affectedCell;
+
+  double _threshold;
   vector<int> _moveStack;   // history of cell movement
   void addBefore(int part, Node *node, int gain);
+  void addAfter(int part, Node *node, int gain);
+  void remove(Node *node, int gain);
   void move(Node *tar);
   void updateGain(Cell *cell);
   bool refine();
+
   // Clean up partitioner
   void clear();
 };

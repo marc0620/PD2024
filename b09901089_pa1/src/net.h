@@ -32,11 +32,11 @@ public:
     else
       _lockr = true;
   }
-  void unlock(int part) {
+  void unlock() {
     _lockr = false;
     _lockl = false;
   }
-  bool getLock() { return _lockl || _lockr; }
+  bool getLock() { return _lockl && _lockr; }
 
 private:
   bool _lockr;

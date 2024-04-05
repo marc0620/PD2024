@@ -5,7 +5,6 @@
 #include <vector>
 
 using namespace std;
-
 class Node {
   friend class Cell;
 
@@ -58,6 +57,7 @@ public:
   void unlock() { _lock = false; }
   void incGain() { ++_gain; }
   void decGain() { --_gain; }
+  void clearGain() { _gain = 0; }
   void incPinNum() { ++_pinNum; }
   void decPinNum() { --_pinNum; }
   void addNet(const int netId) { _netList.push_back(netId); }

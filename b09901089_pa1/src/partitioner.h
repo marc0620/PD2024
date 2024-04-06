@@ -64,9 +64,11 @@ private:
   void addBefore(int part, Node *node, int gain);
   void addAfter(int part, Node *node, int gain);
   void remove(Node *node, int gain);
-  void move(Node *tar);
+  void move(Node *tar,int mode); // mode 0: initial partition, mode 1: partition process
   void updateGain(Cell *cell);
-  bool refine();
+  bool refine(int mode);
+  void initialPartition(int mode);
+  int calculateGain(bool unlocknet);
 
   // Clean up partitioner
   void clear();

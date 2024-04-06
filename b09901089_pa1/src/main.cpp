@@ -2,10 +2,12 @@
 #include <fstream>
 #include <vector>
 #include "partitioner.h"
+#include <time.h>
 using namespace std;
 
 int main(int argc, char** argv)
 {
+    srand(time(NULL));  
     fstream input, output;
 
     if (argc == 3) {

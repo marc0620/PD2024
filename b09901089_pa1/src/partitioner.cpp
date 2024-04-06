@@ -13,7 +13,7 @@
 #include <time.h>
 using namespace std;
 
-#define MAX_ITER 20
+
 void Partitioner::parseInput(fstream &inFile) {
   string str;
   // Set balance factor
@@ -219,7 +219,6 @@ void Partitioner::move(Node *tar, int mode) {
 
   // remove cell from list
   remove(tar, _cellArray[tar->getId()]->getGain());
-
   // update accumulative gain and move record
   _accGain += _cellArray[tar->getId()]->getGain();
   if(mode==1){
@@ -262,8 +261,43 @@ void Partitioner::move(Node *tar, int mode) {
 bool Partitioner::refine(int mode) {
   //reportNet();
   //cout<<"maxAccGain: "<<_maxAccGain<<endl;
-  if (_maxAccGain <= 0 && mode==1)
-    return false;
+  if(mode==1){
+    if((_maxAccGain<= _initcutsize*_cutRatio) && _perturbRatio>0){
+      if(_maxAccGain>0){
+        _cutSize-=_maxAccGain;
+        for (int i = _moveNum - 1; i > _bestMoveNum; i--) {
+          //cout<<"revert: "<<_cellArray[_moveStack[i]]->getName()<<endl;
+          int cellid = _moveStack[i];
+          _cellArray[cellid]->move();
+          _partSize[1-_cellArray[cellid]->getPart()]--;
+          _partSize[_cellArray[cellid]->getPart()]++;
+          for (vector<int>::iterator it = _cellArray[cellid]->getNetList().begin(); it != _cellArray[cellid]->getNetList().end(); ++it) {
+            _netArray[*it]->incPartCount(_cellArray[cellid]->getPart());
+            _netArray[*it]->decPartCount(1 - _cellArray[cellid]->getPart());
+          }
+        }
+      }
+      restore();
+      //if(_cutSize!=calculateCutSize()){
+      //  cout<<"cutsize error"<<endl;
+      //}else{
+      //  cout<<"correct cutsize: "<<_cutSize<<endl;
+      //}
+      perturb();
+      
+      //cout<<"perturb cutsize: "<<_cutSize<<endl;
+      //cout<<"perturb ratio: "<<_perturbRatio<<endl;
+      setup(true);
+      return true;
+    }
+    if(_perturbRatio<=0){
+      _iterNum++;
+      if(_maxAccGain<=0){
+        return false;
+      }
+    }
+  }
+  //cout<<"_accmax "<<_maxAccGain<< " cutsize: "<<_cutSize<<endl;
   _cutSize-=_maxAccGain;
   for (int i = _moveNum - 1; i > _bestMoveNum; i--) {
     //cout<<"revert: "<<_cellArray[_moveStack[i]]->getName()<<endl;
@@ -277,28 +311,112 @@ bool Partitioner::refine(int mode) {
     }
   }
 
+  setup(true);
+  //if(_cutSize!=calculateCutSize()){
+  //  cout<<"cutsize error"<<endl;
+  //  cout<<"real cutsize: "<<calculateCutSize() <<" cutsize "<< _cutSize<<endl;
+  //}
+  cout<<"cutsize: "<<_cutSize<<"\n";
+
+
+  return true;
+}
+
+void Partitioner::perturb(){
+
+  if(_perturbRatio-_perturbStep<=0 && _perturbNum%_perturbPeriod==_perturbPeriod-1){
+    _perturbRatio-=_perturbStep;
+
+    return;
+  }
+  cout<<"perturb "<<_perturbRatio<<endl;
+  int count=0;
+  for(vector<Cell *>::iterator it = _cellArray.begin(); it != _cellArray.end(); ++it){
+    (*it)->unlock();
+  }
+  while(count<_cellNum*_perturbRatio){
+    int idx = rand()%_cellNum;
+    if(_partSize[_cellArray[idx]->getPart()]-1 <= _threshold || _cellArray[idx]->getLock()){
+      continue;
+    }
+    _partSize[_cellArray[idx]->getPart()]--;
+    _cellArray[idx]->move();
+    _partSize[_cellArray[idx]->getPart()]++;
+    _cellArray[idx]->lock();
+    count++;
+  }
+  //for(vector<Cell *>::iterator it = _cellArray.begin(); it != _cellArray.end(); ++it){
+  //  if(rand()%100<_perturbRatio*100 && _partSize[(*it)->getPart()]-1 > _threshold){
+  //    _partSize[(*it)->getPart()]--;
+  //    (*it)->move();
+  //    _partSize[(*it)->getPart()]++;
+  //  }
+  //}
+  _cutSize=0;
+  for(vector<Net *>::iterator it = _netArray.begin(); it != _netArray.end(); ++it){
+    (*it)->setPartCount(0,0);
+    (*it)->setPartCount(1,0);
+    bool p[2]={false,false};
+    for(vector<int>::iterator it2 = (*it)->getCellList().begin(); it2 != (*it)->getCellList().end(); ++it2){
+      (*it)->incPartCount(_cellArray[*it2]->getPart());
+      p[_cellArray[*it2]->getPart()]=true;
+    }
+    if(p[0] && p[1]){
+      _cutSize++;
+    }
+  }
+
+  if(_perturbNum%_perturbPeriod==_perturbPeriod-1){
+    _perturbRatio-=_perturbStep;
+  }
+  _perturbNum++;
+}
+
+void Partitioner::restore(){
+  if(_cutSize<_bestCut || _bestCut<0){
+    _bestCut=_cutSize;
+    for(vector<Cell *>::iterator it = _cellArray.begin(); it != _cellArray.end(); ++it){
+      (*it)->setBestPart((*it)->getPart());
+    }
+    //cout<<"bestcut: "<<_bestCut<<endl;
+  }else{
+    for(vector<Cell *>::iterator it = _cellArray.begin(); it != _cellArray.end(); ++it){
+      (*it)->setPart((*it)->getBestPart());
+    }
+    //cout << "restore current: " << _cutSize <<" best "<<_bestCut << endl;
+    _cutSize=_bestCut;
+  }
+
+  for(vector<Net *>::iterator it = _netArray.begin(); it != _netArray.end(); ++it){
+    (*it)->setPartCount(0,0);
+    (*it)->setPartCount(1,0);
+    for(vector<int>::iterator it2 = (*it)->getCellList().begin(); it2 != (*it)->getCellList().end(); ++it2){
+      (*it)->incPartCount(_cellArray[*it2]->getPart());
+    }
+  }
+  _partSize[0]=0;
+  _partSize[1]=0;
+  for(vector<Cell *>::iterator it = _cellArray.begin(); it != _cellArray.end(); ++it)
+    _partSize[(*it)->getPart()]++;
+  
+}
+
+void Partitioner::setup(bool increase_iter){
   for (vector<Cell *>::iterator it = _cellArray.begin(); it != _cellArray.end(); ++it) {
     (*it)->unlock();
     (*it)->clearGain();
   }
   calculateGain(true);
-  while(!_sList.empty()){
-    _sList.erase(_sList.begin());
-    _sListtail.erase(_sListtail.begin());
-  }
+  _sList.clear();
+  _sListtail.clear();
   for (vector<Cell *>::iterator it = _cellArray.begin(); it != _cellArray.end(); ++it) {
     addBefore((*it)->getPart(), (*it)->getNode(), (*it)->getGain());
   }
   _accGain = 0;
   _maxAccGain = 0;
   _moveNum = 0;
-  _iterNum++;
   _moveStack.clear(); 
-
-
-  return true;
 }
-
 
 void Partitioner::printslist() {
   for (map<int, Node *>::iterator it = _sList.begin(); it != _sList.end(); ++it) {
@@ -356,24 +474,83 @@ void Partitioner::initialPartition(int mode){
     for(int i=0;i<_cellNum;i++){
       Node *tar = NULL;
       map<int, Node *>::reverse_iterator l0 = _sList.rbegin();
-      if(l0==_sList.rend())
+      if(l0==_sList.rend()){
+        //cout<<"slist empty "<<i<<endl;
         break;
+      }
       Node *cur = (*l0).second;
       if(_partSize[0] - 1 <= _threshold){
         break;
       }else{
         tar = cur;
       }
-      if (tar == NULL)
+      if (tar == NULL){
+        //cout<<"no tar "<<i<<endl;
         break;
+      }
       else{
         move(tar,0);
       }
+      //cout<<"_accgain "<< _accGain<<endl;
+      //cout<<"partsize0 "<<_partSize[0]<<"threshold "<< _cellNum-_threshold<<endl;
     }
-    if (refine(0) == false)
-      initialPartition(0);
-    cout<<_cutSize<<endl;
+    refine(0);
+    _initcutsize=_cutSize;
+    cout<<"initial cutsize: "<<_cutSize<<endl;
+
+    //bao tiao parameter
+    if(_initcutsize<2000){
+      _perturbStep=0.05;
+      _perturbRatio=0.4;
+      _perturbPeriod=1;
+      _cutRatio=0.001;
+    }
+    else if(_initcutsize<3000){
+      _perturbStep=0.1;
+      _perturbRatio=0.4;
+      _perturbPeriod=2;
+      _cutRatio=0.01;
+    }
+    else if(_initcutsize<4000){
+      _perturbStep=0.1;
+      _perturbRatio=0.4;
+      _perturbPeriod=2;
+      _cutRatio=0.01;
+    }else if(_initcutsize<30000){
+      _perturbStep=0.015;
+      _perturbRatio=0.2;
+      _perturbPeriod=1;
+      _maxIter=5;
+      _cutRatio=0.003;
+    }else if(_initcutsize<50000){
+      _perturbStep=0.03;
+      _perturbRatio=0.3;
+      _perturbPeriod=1;
+      _maxIter=5;
+      _cutRatio=0.005;
+    }else{
+      _perturbStep=0.04;
+      _perturbRatio=0.3;
+      _perturbPeriod=3;
+      _maxIter=10;
+      _cutRatio=0.006;
+    }
+    //cout<<_cutSize<< " " <<_partSize[0] << " "<<  _partSize[1]<<endl;
   }
+}
+
+int Partitioner::calculateCutSize(){
+  int size=0;
+  for(vector<Net *>::iterator it = _netArray.begin(); it != _netArray.end(); ++it){
+    bool p[2]={false,false};
+    for(vector<int>::iterator it2 = (*it)->getCellList().begin(); it2 != (*it)->getCellList().end(); ++it2){
+      p[_cellArray[*it2]->getPart()]=true;
+    }
+    if(p[0] && p[1]){
+      size++;
+    }
+  }
+  return size;
 }
 
 void Partitioner::partition() {
@@ -382,7 +559,7 @@ void Partitioner::partition() {
   // start partitioning
   _maxAccGain = 0;
   _iterNum = 0;
-  for (int i = 0; i < MAX_ITER; i++) {
+  while(_iterNum<_maxIter) {
     //cout<<"cutsize: "<<_cutSize<<endl;
     for (int j = 0; j < _cellNum; j++) {
       //cout<<"accgain: "<<_accGain<<endl;
@@ -409,7 +586,6 @@ void Partitioner::partition() {
       if (tar == NULL)
         break;
       else{
-        //cout<<"tar: "<<_cellArray[tar->getId()]->getName()<<endl;
         move(tar, 1);
       }
     }

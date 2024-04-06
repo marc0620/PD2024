@@ -50,7 +50,8 @@ public:
   void setGain(const int gain) { _gain = gain; }
   void setPart(const bool part) { _part = part; }
   void setName(const string name) { _name = name; }
-
+  bool getBestPart() const { return _bestPart; }
+  void setBestPart(const bool part) { _bestPart = part; }
   // Modify methods
   void move() { _part = !_part; }
   void lock() { _lock = true; }
@@ -66,6 +67,7 @@ private:
   int _gain;              // gain of the cell
   int _pinNum;            // number of pins the cell are connected to
   bool _part;             // partition the cell belongs to (0-A, 1-B)
+  bool _bestPart;          // best partition the cell belongs to
   bool _lock;             // whether the cell is locked
   Node *_node;            // node used to link the cells together
   string _name;           // name of the cell

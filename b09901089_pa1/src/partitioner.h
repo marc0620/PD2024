@@ -11,7 +11,7 @@ using namespace std;
 class Partitioner {
 public:
   // constructor and destructor
-  Partitioner(fstream &inFile) : _cutSize(0), _netNum(0), _cellNum(0), _maxPinNum(0), _bFactor(0), _accGain(0), _maxAccGain(0), _iterNum(0) {
+  Partitioner(fstream &inFile) : _cutSize(0), _netNum(0), _cellNum(0), _maxPinNum(0), _bFactor(0), _accGain(0), _maxAccGain(0), _iterNum(0),_bestCut(-1),_perturbNum(0),_cutRatio(0.005),_perturbRatio(0.5),_maxIter(10),_perturbPeriod(1){
     parseInput(inFile);
     _partSize[0] = 0;
     _partSize[1] = 0;
@@ -59,7 +59,15 @@ private:
   int _unlockNum[2];               // number of unlocked cells
   map<int,int> _affectedCell;
 
-  double _threshold;
+  int _threshold;
+  int _bestCut;
+  double _cutRatio;
+  double _perturbRatio;
+  int _perturbNum;
+  int _perturbPeriod;
+  int _initcutsize;
+  double _perturbStep;
+  int _maxIter;
   vector<int> _moveStack;   // history of cell movement
   void addBefore(int part, Node *node, int gain);
   void addAfter(int part, Node *node, int gain);
@@ -68,8 +76,11 @@ private:
   void updateGain(Cell *cell);
   bool refine(int mode);
   void initialPartition(int mode);
+  void perturb();
+  void restore(); 
   int calculateGain(bool unlocknet);
-
+  void setup(bool increase_iter);
+  int calculateCutSize();
   // Clean up partitioner
   void clear();
 };

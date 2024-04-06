@@ -7,7 +7,9 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
-    srand(time(NULL));  
+    clock_t start, end;
+    start=clock();
+    srand(9901089);  
     fstream input, output;
 
     if (argc == 3) {
@@ -33,6 +35,9 @@ int main(int argc, char** argv)
     partitioner->partition();
     partitioner->printSummary();
     partitioner->writeResult(output);
+
+    end=clock();
+    cout << "Execution time: " << (double)(end-start)/CLOCKS_PER_SEC << "s\n"; 
 
     return 0;
 }

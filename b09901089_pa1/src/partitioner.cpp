@@ -316,7 +316,7 @@ bool Partitioner::refine(int mode) {
   //  cout<<"cutsize error"<<endl;
   //  cout<<"real cutsize: "<<calculateCutSize() <<" cutsize "<< _cutSize<<endl;
   //}
-  cout<<"cutsize: "<<_cutSize<<"\n";
+  //cout<<"cutsize: "<<_cutSize<<"\n";
 
 
   return true;
@@ -329,7 +329,7 @@ void Partitioner::perturb(){
 
     return;
   }
-  cout<<"perturb "<<_perturbRatio<<endl;
+  //cout<<"perturb "<<_perturbRatio<<endl;
   int count=0;
   for(vector<Cell *>::iterator it = _cellArray.begin(); it != _cellArray.end(); ++it){
     (*it)->unlock();
@@ -512,10 +512,10 @@ void Partitioner::initialPartition(int mode){
       _cutRatio=0.01;
     }
     else if(_initcutsize<4000){
-      _perturbStep=0.1;
-      _perturbRatio=0.4;
-      _perturbPeriod=2;
-      _cutRatio=0.01;
+      _perturbStep=0.4;
+      _perturbRatio=0.15;
+      _perturbPeriod=5;
+      _cutRatio=0;
     }else if(_initcutsize<30000){
       _perturbStep=0.015;
       _perturbRatio=0.2;

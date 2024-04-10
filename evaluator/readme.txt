@@ -1,42 +1,47 @@
 For Evaluator:
-    Usage1: 
-    ./evaluator.sh [input_file_name] [output_file_name] [runtime]
-    Usage2: 
-    ./evaluator.sh [input_file_name] [output_file_name]
-    Please input your runtime(s):
-    [runtime]
+    Usage: 
+    ./evaluator.sh [input.block] [input.net] [output.rpt] [alpha]
+    ## Note that we only support alpha=0.5 for public evaluation ##
 
-    Ex: bash evaluator.sh input_0.dat result_0.dat 0.14
+    Ex: bash evaluator.sh ami33.block ami33.nets ami33.rpt 0.5
+    Results: 
+    [Eval] Run cmd: ./checker ../input_pa2/ami33.block ../input_pa2/ami33.nets ami33.rpt 0.5
 
-    Results:
-    [Eval] ./checker input_0.dat result_0.dat
-    [Check] Cut size = 3400 matched!
-    [Check] Balance passed:: 60300(min) < 76453(G1), 74297(G2) < 90450(max)
-    =================================
-    Congratulations! Legal Solution!!
-    =================================
+    Checking Report...
+    cost:       actual  662927.500000/reported 662928.000000
+    wirelength: actual  71602.000000/reported 71602.000000
+    area:       actual  1254253.000000/reported 1254253.000000
+    width:      outline 1326/actual 1253/reported 1253.000000
+    height:     outline 1205/actual 1001/reported 1001.000000
+    runtime: 0.001531
 
-    [Eval] Your cutsize: 3400
-    [Eval] Your runtime: 0.14
+    Congradulations, your results are correct
+
+    [Eval] Your area & wirelength: 1254253.000000 & 71602.000000
+    [Eval] Your runtime: 0.001531
+    [Eval] Your normalized cost = 0.5*(A-minA)/(maxA-minA) + 0.5*(WL-minWL)/(maxWL-minWL) = 0.0794171
     [Eval] SCORE = QUALITY_SCORE*0.8 + RUNTIME_SCORE*0.2
-                = 8.8567874*0.8 + 19.03331*0.2
-                = 10.89209
+                = 6.687530*0.8 + 9.103054*0.2
+                = 7.17063
 
     --
     Contact: Yan-Jen Chen <yjchen@eda.ee.ntu.edu.tw>
 
 
 For Checker:
-    Usage: 
-    chmod 744 checker
-    ./checker [input_file_name] [output_file_name]
+	Usage:
+	./checker [input block] [input net] [output] [alpha]
 
-
-    Ex: ./checker case1.dat result1.dat
+    Ex: ./checker ami33.block ami33.nets ami33.rpt 0.5
 
     Results:
-    [Check] Cut size = 3400 matched!
-    [Check] Balance passed:: 60300(min) < 76453(G1), 74297(G2) < 90450(max)
-    =================================
-    Congratulations! Legal Solution!!
-    =================================
+	Checking Report...
+    cost:       actual  662927.500000/reported 662928.000000
+    wirelength: actual  71602.000000/reported 71602.000000
+    area:       actual  1254253.000000/reported 1254253.000000
+    width:      outline 1326/actual 1253/reported 1253.000000
+    height:     outline 1205/actual 1001/reported 1001.000000
+    runtime: 0.001531
+
+    Congradulations, your results are correct
+	--

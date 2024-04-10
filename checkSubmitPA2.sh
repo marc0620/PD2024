@@ -1,17 +1,17 @@
 #!/bin/bash
 
 #############################################################################
-# File       [ checkSubmitPA1.sh ]
+# File       [ checkSubmitPA2.sh ]
 # Author     [ YSLu ]
-# Synopsis   [ simple test for algorithm PA1 homework format program ]
+# Synopsis   [ simple test for algorithm PA2 homework format program ]
 # Date       [ Ver. 1.0 started 2020/03/14 ]
 #############################################################################
 
 check_dir=check_$$
 
 if [ "$1" == "" ]; then
-    echo "Usage:   ./checkSubmitPA1.sh <fileName>"
-    echo "Example: ./checkSubmitPA1.sh b06901000_pa1.tgz"
+    echo "Usage:   ./checkSubmitPA2.sh <fileName>"
+    echo "Example: ./checkSubmitPA2.sh b06901000_pa2.tgz"
     echo "This program will build a directory named \"$check_dir\""
     exit 1
 fi
@@ -29,9 +29,9 @@ if [ -d check_$$ ]; then
     exit 1
 fi
 
-if [ ! "$tgz_file" == *_pa1.tgz ]; then
+if [ ! "$tgz_file" == *_pa2.tgz ]; then
     echo "**ERROR** Wrong naming format \"$tgz_file\"!"
-    echo "**ERROR** tgz file should be named as \"<stu_id>_pa1.tgz\" (e.g. b06901000_pa1.tgz)"
+    echo "**ERROR** tgz file should be named as \"<stu_id>_pa2.tgz\" (e.g. b06901000_pa2.tgz)"
     exit 2
 fi
 
@@ -43,7 +43,7 @@ tar zxvf ../$tgz_file
 stuid=`basename $tgz_file | sed -e 's/_.*//'`
 echo "[Info] Your submission file: $tgz_file"
 echo "[Info] Your student ID: $stuid"
-stu_dir=${stuid}_pa1
+stu_dir=${stuid}_pa2
 
 echo "[Info] Checking \"${stu_dir}/\" ..."
 if [ ! -d ${stu_dir} ]; then
@@ -105,7 +105,16 @@ if [ ! -f ${readme} ]; then
     exit 2
 fi
 
-bin=${stu_dir}/bin/fm
+report=${stu_dir}/report.pdf
+echo "[Info] Checking \"${report}\" ..."
+if [ ! -f ${report} ]; then
+    echo "**ERROR** Cannot find \"${report}\""
+    cd ../
+    rm -rf $check_dir
+    exit 2
+fi
+
+bin=${stu_dir}/bin/fp
 echo "[Info] Checking \"${bin}\" ..."
 if [ ! -f ${bin} ]; then
     echo "**ERROR** Cannot find \"${bin}\""

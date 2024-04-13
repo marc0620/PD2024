@@ -2,6 +2,7 @@
 #ifndef FLOOR_PLANNER_H
 #define FLOOR_PLANNER_H
 
+#include <algorithm>
 #include "Btree.h"
 #include "IOpkg.h"
 #include "module.h"

@@ -1,4 +1,7 @@
 #include "floorplanner.h"
+#include <algorithm>
+#include <map>
+#include <vector>
 
 floorplanner::floorplanner(double alpha, char *inputBlk, char *inputNet, char *output) {
   _alpha = alpha;

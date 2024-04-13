@@ -49,10 +49,12 @@ private:
 public:
   Btree() : _root(nullptr) {}
   ~Btree() {}
-  void updateContour(BNode *node, int x);
+  void updateContour(BNode *node);
+  std::map<int, CSeg *> &getHContour() { return _hContour; }
   BNode *getRoot() { return _root; }
   void setRoot(BNode *root) { _root = root; }
   int getY(int x1, int x2);
+  void clearContour();
 };
 
 #endif

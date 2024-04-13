@@ -38,15 +38,17 @@ protected:
 class Block : public Terminal {
 public:
   // constructor and destructor
-  Block(string &name, size_t w, size_t h) : Terminal(name, 0, 0), _w(w), _h(h) {}
+  Block(string &name, size_t w, size_t h) : Terminal(name, 0, 0), _w(w), _h(h), _rotate(false) {}
   ~Block() {}
 
   // basic access methods
-  const size_t getWidth(bool rotate = false) { return rotate ? _h : _w; }
-  const size_t getHeight(bool rotate = false) { return rotate ? _w : _h; }
+  const size_t getWidth() { return _rotate ? _h : _w; }
+  const size_t getHeight() { return _rotate ? _w : _h; }
   const size_t getArea() { return _h * _w; }
   static size_t getMaxX() { return _maxX; }
   static size_t getMaxY() { return _maxY; }
+  bool getRotate() { return _rotate; }
+  BNode *getNode() { return _node; }
   void setX(int x1, int x2) {
     _x1 = x1;
     _x2 = x2;
@@ -59,7 +61,7 @@ public:
   // set functions
   void setWidth(size_t w) { _w = w; }
   void setHeight(size_t h) { _h = h; }
-  BNode *getNode() { return _node; }
+  void Rotate() { _rotate = !_rotate; }
   void setNode(BNode *node) { _node = node; }
   static void setMaxX(size_t x) { _maxX = x; }
   static void setMaxY(size_t y) { _maxY = y; }
@@ -71,6 +73,7 @@ private:
   size_t _h;             // height of the block
   static size_t _maxX;   // maximum x coordinate for all blocks
   static size_t _maxY;   // maximum y coordinate for all blocks
+  bool _rotate;          // whether the block is rotated
   BNode *_node;          // pointer to the node in the binary tree
 };
 class Net {

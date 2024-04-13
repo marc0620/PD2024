@@ -73,7 +73,6 @@ private:
   static size_t _maxY;   // maximum y coordinate for all blocks
   BNode *_node;          // pointer to the node in the binary tree
 };
-
 class Net {
 public:
   // constructor and destructor
@@ -92,8 +91,5 @@ public:
 private:
   vector<Terminal *> _termList;   // list of terminals the net is connected to
 };
-
-size_t Block::_maxX = 0;
-size_t Block::_maxY = 0;
 
 #endif   // MODULE_H

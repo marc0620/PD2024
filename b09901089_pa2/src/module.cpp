@@ -1,6 +1,7 @@
 #include "module.h"
 #include <fstream>
 #include <iostream>
+#include <limits.h>
 size_t Block::_maxX = 0;
 size_t Block::_maxY = 0;
 std::fstream &operator<<(std::fstream &fs, Block &blk) {

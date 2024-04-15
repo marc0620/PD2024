@@ -466,6 +466,8 @@ void floorplanner::plotresult(string filename, int i) {
                << endl;
   }
   for (vector<Block *>::iterator it = _blocks.begin(); it != _blocks.end(); it++) {
+    if((*it)==nullptr)
+      exit(1);
     if(_leaves.find((*it)->getid())!=_leaves.end())
       outputplot << "<rect x=\"" << (*it)->getX1() << "\" y=\"" << (*it)->getY1() << "\" width=\"" << (*it)->getWidth() << "\" height=\"" << (*it)->getHeight() << "\" fill=\"rgba(" << 256 << "," << 256
                << "," << 0 << "," << 0.4 << ")\" stroke = \"black\" stroke-opacity=\"1\" stroke-width=\"1\" />" << endl;

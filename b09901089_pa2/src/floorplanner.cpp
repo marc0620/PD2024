@@ -41,7 +41,8 @@ void floorplanner::revert() {
 }
 
 void floorplanner::checkbest() {
-  cout << "curcost: " << _curcost << " bestcost: " << _bestcost << endl;
+  if(_verbose)
+    cout << "curcost: " << _curcost << " bestcost: " << _bestcost << endl;
   if (_curcost < _bestcost) {
     _bestcost = _curcost;
     for (auto blk : _blocks) {
@@ -75,7 +76,8 @@ void floorplanner::perturb(double r, double m, bool SAmode) {
     rotateBlock(_blocks[idx]);
     pack();
     double cost = eval();
-    cout << cost << endl;
+    if(_verbose)
+      cout << cost << endl;
     if (accept(cost) || !SAmode) {
       _curcost = cost;
       checkbest();
@@ -89,17 +91,20 @@ void floorplanner::perturb(double r, double m, bool SAmode) {
       cout << "move ";
     int tar = rand() % _leaves.size();
     int par = rand() % _blockNum;
+    map<int, BNode*>::iterator it;
+    int tarid;
     for (int i = 0; i < _blockNum; i++) {
-      if (tar != par && (_blocks[par]->getNode()->getLeft() == nullptr || _blocks[par]->getNode()->getRight() == nullptr))
+      it=_leaves.begin();
+      std::advance(it, tar);
+      tarid=it->first;
+      if (tarid != par && (_blocks[par]->getNode()->getLeft() == nullptr || _blocks[par]->getNode()->getRight() == nullptr))
         break;
       par = rand() % _blockNum;
     }
-    if (tar == par || (_blocks[par]->getNode()->getLeft() != nullptr && _blocks[par]->getNode()->getRight() != nullptr))
+    if (tarid == par || (_blocks[par]->getNode()->getLeft() != nullptr && _blocks[par]->getNode()->getRight() != nullptr))
       return;
     if (_verbose)
-      cout << "tar: " << _leaves[tar]->getBlk()->getid() << " par: " << par << endl;
-    map<int, BNode*>::iterator it= _leaves.begin();
-    std::advance(it, tar);
+      cout << "tar: " << it->second->getBlk()->getid() << " par: " << par << endl;
     BNode *target= (*it).second;
     bool origleft = target->getParent()->getLeft() == target;
     BNode *origpar = target->getParent();
@@ -115,7 +120,8 @@ void floorplanner::perturb(double r, double m, bool SAmode) {
     moveNode(target, parent, left);
     pack();
     double cost = eval();
-    cout << cost << endl;
+    if(_verbose)
+      cout << cost << endl;
     if (accept(cost) || !SAmode) {
       _curcost = cost;
       checkbest();
@@ -145,7 +151,8 @@ void floorplanner::perturb(double r, double m, bool SAmode) {
     swapNode(bn1, bn2);
     pack();
     double cost = eval();
-    cout << cost << endl;
+    if(_verbose)
+      cout << cost << endl;
     if (accept(cost) || !SAmode) {
       _curcost = cost;
       checkbest();
@@ -329,19 +336,24 @@ double floorplanner::eval(bool init) {
   for (vector<Net *>::iterator it = _nets.begin(); it != _nets.end(); it++) {
     costNet += (*it)->calcHPWL();
   }
-  costNet += (std::min(Block::getMaxX() - _outlineX, size_t(0)) * _OOB);
-  costNet += (std::min(Block::getMaxY() - _outlineY, size_t(0)) * _OOB);
 
   int costarea=Block::getMaxX()*Block::getMaxY();
   if(init){
     _avgarea=costarea;
     _avgnet=costNet;
   }
-  double cost=costNet*(1-_alpha)/_avgarea+(_alpha)*costarea/_avgnet;
+  double cost=costNet*(1-_alpha)/_avgnet+(_alpha)*costarea/_avgarea;
+  cost+=(std::max(Block::getMaxX() - _outlineX, size_t(0)) * _OOB);
+  cost+=(std::max(Block::getMaxY() - _outlineY, size_t(0)) * _OOB);
+  cout << "costNet: " << costNet/_avgnet << " costarea: " << costarea/_avgarea << " cost "<<cost << endl;
   return cost;
 }
 
 void floorplanner::swapNode(BNode *n1, BNode *n2) {
+  if(_tree.getRoot()==n1)
+    _tree.setRoot(n2);
+  else if(_tree.getRoot()==n2)
+    _tree.setRoot(n1);
   BNode *temp = n1->getParent();
   if (temp != nullptr) {
     if (temp->getLeft() == n1) {
@@ -438,9 +450,10 @@ void floorplanner::SA() {
     else
       r = 0.7, m = 0.2;
     perturb(0.1, 0.1, true);
-    plotresult("p" + to_string(_time) + ".svg", _blockNum - 1);
+    if(_verbose)
+      plotresult("p" + to_string(_time) + ".svg", _blockNum - 1);
     _time++;
-    _temp *= 0.85;
+    _temp *= _lambda;
   }
   return;
 }

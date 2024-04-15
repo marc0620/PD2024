@@ -30,10 +30,9 @@ private:
   int _first_temp = 1000000;
   double _temp = _first_temp;
   int _time = 0;
-  double _lambda = 0.85;
-  bool _verbose = true;
-  int _avgarea=0;
-  int _avgnet=0;
+  double _lambda = 0.99;
+  bool _verbose = false;
+  double _avgarea=0, _avgnet=0;
 
 public:
   floorplanner(double alpha, char *inputBlk, char *inputNet, char *output);

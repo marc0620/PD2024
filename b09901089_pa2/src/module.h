@@ -47,6 +47,7 @@ public:
   const size_t getArea() { return _h * _w; }
   static size_t getMaxX() { return _maxX; }
   static size_t getMaxY() { return _maxY; }
+  int getid() { return _id; }
   bool getRotate() { return _rotate; }
   BNode *getNode() { return _node; }
   void setX(int x1, int x2) {
@@ -62,6 +63,7 @@ public:
   void setWidth(size_t w) { _w = w; }
   void setHeight(size_t h) { _h = h; }
   void Rotate() { _rotate = !_rotate; }
+  void setid(int id) { _id = id; }
   void setNode(BNode *node) { _node = node; }
   static void setMaxX(size_t x) { _maxX = x; }
   static void setMaxY(size_t y) { _maxY = y; }
@@ -75,6 +77,7 @@ private:
   static size_t _maxY;   // maximum y coordinate for all blocks
   bool _rotate;          // whether the block is rotated
   BNode *_node;          // pointer to the node in the binary tree
+  int _id;
 };
 class Net {
 public:

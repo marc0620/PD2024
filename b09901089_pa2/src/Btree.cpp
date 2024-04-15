@@ -3,6 +3,20 @@
 #include <map>
 #include <vector>
 
+void BNode::revert() {
+  _parent = _bparent;
+  _left = _bleft;
+  _right = _bright;
+  return;
+}
+
+void BNode::setBest() {
+  _bparent = _parent;
+  _bleft = _left;
+  _bright = _right;
+  return;
+}
+
 void Btree::updateContour(BNode *node) {
   int x1 = node->getBlk()->getX1();
   int x2 = node->getBlk()->getX2();

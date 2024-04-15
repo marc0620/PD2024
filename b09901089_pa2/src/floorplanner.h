@@ -3,9 +3,11 @@
 #define FLOOR_PLANNER_H
 
 #include "Btree.h"
-#include "IOpkg.h"
 #include "module.h"
 #include <algorithm>
+#include <climits>
+#include <cstdint>
+#include <fstream>
 #include <string>
 #include <vector>
 class floorplanner {
@@ -15,13 +17,21 @@ private:
   vector<Terminal *> _terminals;
   vector<Block *> _blocks;
   Btree _tree;
-  IOpkg _inputNet;
-  IOpkg _inputBlock;
-  IOpkg _output;
-  IOpkg _outputplot;
+  fstream _inputNet;
+  fstream _inputBlock;
+  fstream _output;
   double _alpha;
   int _outlineX, _outlineY;
   int _blockNum, _terminalNum, _netNum;
+  vector<BNode *> _leaves;
+  // modifiable variables
+  int _OOB = 1000;
+  int _bestcost = INT_MAX, _curcost = INT_MAX;
+  int _first_temp = 1000000;
+  double _temp = _first_temp;
+  int _time = 0;
+  double _lambda = 0.85;
+  bool _verbose = false;
 
 public:
   floorplanner(double alpha, char *inputBlk, char *inputNet, char *output);
@@ -29,13 +39,20 @@ public:
   void init();
   void plotresult(string filename, int i);
   void rotateBlock(Block *blk);
-  void moveBlock(Block *tar, Block *par);
-  void swapBlock(Block *blk1, Block *blk2);
+  void moveNode(BNode *tar, BNode *par, bool left);
+  void swapNode(BNode *blk1, BNode *blk2);
   int eval();
   void pack();
-  void clearPos();
-
-  ~floorplanner();
+  void clear();
+  void packleft(BNode *cur);
+  void packright(BNode *cur);
+  int getBlkNum() { return _blockNum; }
+  void SA();
+  void perturb(double r, double m, bool SAmode);
+  void checkbest();
+  void revert();
+  bool accept(int cost);
+  ~floorplanner(){};
 };
 
 #endif

@@ -27,6 +27,9 @@ private:
   BNode *_right;
   Block *_blk;
   BNode *_parent;
+  BNode *_bparent;   // best parent
+  BNode *_bleft;     // best left
+  BNode *_bright;    // best right
 
 public:
   BNode(Block *blk) : _blk(blk), _left(nullptr), _right(nullptr), _parent(nullptr) {}
@@ -39,6 +42,8 @@ public:
   void setRight(BNode *right) { _right = right; }
   void setParent(BNode *parent) { _parent = parent; }
   void setBlk(Block *blk) { _blk = blk; }
+  void revert();
+  void setBest();
 };
 
 class Btree {

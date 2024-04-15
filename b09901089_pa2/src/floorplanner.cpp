@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <fstream>
 #include <iostream>
+#include <iterator>
 #include <map>
 #include <random>
 #include <stdlib.h>
@@ -23,7 +24,6 @@ floorplanner::floorplanner(double alpha, char *inputBlk, char *inputNet, char *o
   if (!_output.is_open())
     cout << "Error: cannot open file " << output << endl;
   srand(901089);
-  _leaves.reserve(_blockNum);
 }
 
 void floorplanner::revert() {
@@ -34,7 +34,7 @@ void floorplanner::revert() {
       _tree.setRoot(blk->getNode());
     }
     if (blk->getNode()->getLeft() == nullptr && blk->getNode()->getRight() == nullptr) {
-      _leaves.push_back(blk->getNode());
+      _leaves[blk->getid()]=blk->getNode();
     }
   }
   return;
@@ -74,7 +74,7 @@ void floorplanner::perturb(double r, double m, bool SAmode) {
       cout << "idx: " << idx << endl;
     rotateBlock(_blocks[idx]);
     pack();
-    int cost = eval();
+    double cost = eval();
     cout << cost << endl;
     if (accept(cost) || !SAmode) {
       _curcost = cost;
@@ -98,7 +98,9 @@ void floorplanner::perturb(double r, double m, bool SAmode) {
       return;
     if (_verbose)
       cout << "tar: " << tar << " par: " << par << endl;
-    BNode *target = _leaves[tar];
+    map<int, BNode*>::iterator it= _leaves.begin();
+    std::advance(it, tar);
+    BNode *target= (*it).second;
     bool origleft = target->getParent()->getLeft() == target;
     BNode *origpar = target->getParent();
     BNode *parent = _blocks[par]->getNode();
@@ -112,7 +114,7 @@ void floorplanner::perturb(double r, double m, bool SAmode) {
     }
     moveNode(target, parent, left);
     pack();
-    int cost = eval();
+    double cost = eval();
     cout << cost << endl;
     if (accept(cost) || !SAmode) {
       _curcost = cost;
@@ -142,7 +144,7 @@ void floorplanner::perturb(double r, double m, bool SAmode) {
     BNode *bn2 = _blocks[n2]->getNode();
     swapNode(bn1, bn2);
     pack();
-    int cost = eval();
+    double cost = eval();
     cout << cost << endl;
     if (accept(cost) || !SAmode) {
       _curcost = cost;
@@ -313,19 +315,29 @@ void floorplanner::init() {
     //   cout << " " << it->second->getX1() << " " << it->second->getX2() << " " << it->second->getY() << endl;
     // }
     // cout << endl;
-    if (node->getLeft() == nullptr && node->getRight() == nullptr) {
-      _leaves.push_back(node);
+  }
+  for(auto blk: _blocks){
+    if(blk->getNode()->getLeft()==nullptr && blk->getNode()->getRight()==nullptr){
+      _leaves[blk->getid()]=blk->getNode();
     }
   }
+  eval(true);
 }
 
-int floorplanner::eval() {
-  int cost = 0;
+double floorplanner::eval(bool init) {
+  int costNet = 0;
   for (vector<Net *>::iterator it = _nets.begin(); it != _nets.end(); it++) {
-    cost += (*it)->calcHPWL();
+    costNet += (*it)->calcHPWL();
   }
-  cost += (std::min(Block::getMaxX() - _outlineX, size_t(0)) * _OOB);
-  cost += (std::min(Block::getMaxY() - _outlineY, size_t(0)) * _OOB);
+  costNet += (std::min(Block::getMaxX() - _outlineX, size_t(0)) * _OOB);
+  costNet += (std::min(Block::getMaxY() - _outlineY, size_t(0)) * _OOB);
+
+  int costarea=Block::getMaxX()*Block::getMaxY();
+  if(init){
+    _avgarea=costarea;
+    _avgnet=costNet;
+  }
+  double cost=costNet*(1-_alpha)/_avgarea+(_alpha)*costarea/_avgnet;
   return cost;
 }
 
@@ -364,6 +376,21 @@ void floorplanner::swapNode(BNode *n1, BNode *n2) {
     temp2->setParent(n1);
   n1->setRight(n2->getRight());
   n2->setRight(temp);
+
+  bool n1leaf=(_leaves[n1->getBlk()->getid()]!=nullptr);
+  bool n2leaf=(_leaves[n2->getBlk()->getid()]!=nullptr);
+  
+  if(n1leaf){
+    _leaves[n2->getBlk()->getid()]=n2;
+  }else{
+    _leaves.erase(n2->getBlk()->getid());
+  }
+  if(n2leaf){
+    _leaves[n1->getBlk()->getid()]=n1;
+  }else{
+    _leaves.erase(n1->getBlk()->getid());
+  }
+
   return;
 }
 
@@ -384,6 +411,11 @@ void floorplanner::moveNode(BNode *tar, BNode *par, bool left) {
     }
     par->setRight(tar);
   }
+  if(_leaves.find(par->getBlk()->getid())!=_leaves.end())
+    _leaves.erase(par->getBlk()->getid());
+  if(_leaves.find(tar->getParent()->getBlk()->getid())!= _leaves.end() && tar->getParent()->getLeft()==nullptr && tar->getParent()->getRight()==nullptr)
+    _leaves[tar->getParent()->getBlk()->getid()]=tar->getParent();
+  
   tar->setParent(par);
   return;
 }
@@ -406,7 +438,7 @@ void floorplanner::SA() {
     else
       r = 0.7, m = 0.2;
     perturb(0.1, 0.1, true);
-    // plotresult("p" + to_string(_time) + ".svg", _blockNum - 1);
+    plotresult("p" + to_string(_time) + ".svg", _blockNum - 1);
     _time++;
     _temp *= 0.85;
   }

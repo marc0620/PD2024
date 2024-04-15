@@ -23,15 +23,17 @@ private:
   double _alpha;
   int _outlineX, _outlineY;
   int _blockNum, _terminalNum, _netNum;
-  vector<BNode *> _leaves;
+  map<int, BNode *> _leaves;
   // modifiable variables
   int _OOB = 1000;
-  int _bestcost = INT_MAX, _curcost = INT_MAX;
+  double _bestcost = INT_MAX, _curcost = INT_MAX;
   int _first_temp = 1000000;
   double _temp = _first_temp;
   int _time = 0;
   double _lambda = 0.85;
-  bool _verbose = false;
+  bool _verbose = true;
+  int _avgarea=0;
+  int _avgnet=0;
 
 public:
   floorplanner(double alpha, char *inputBlk, char *inputNet, char *output);
@@ -41,7 +43,7 @@ public:
   void rotateBlock(Block *blk);
   void moveNode(BNode *tar, BNode *par, bool left);
   void swapNode(BNode *blk1, BNode *blk2);
-  int eval();
+  double eval(bool init=false);
   void pack();
   void clear();
   void packleft(BNode *cur);

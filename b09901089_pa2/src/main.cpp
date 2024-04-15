@@ -22,6 +22,7 @@ int main(int argc, char **argv) {
   fp.plotresult("afterpack.svg", fp.getBlkNum() - 1);
   fp.SA();
   fp.revert();
+  fp.pack();
   fp.plotresult("result.svg", fp.getBlkNum() - 1);
   fp.writeOutput();
   return 0;

@@ -30,6 +30,7 @@ private:
   BNode *_bparent;   // best parent
   BNode *_bleft;     // best left
   BNode *_bright;    // best right
+  bool _brotate;  // best rotate
 
 public:
   BNode(Block *blk) : _blk(blk), _left(nullptr), _right(nullptr), _parent(nullptr) {}

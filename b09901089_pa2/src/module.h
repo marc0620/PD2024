@@ -63,6 +63,7 @@ public:
   void setWidth(size_t w) { _w = w; }
   void setHeight(size_t h) { _h = h; }
   void Rotate() { _rotate = !_rotate; }
+  void setRotate(bool rotate) { _rotate = rotate; }
   void setid(int id) { _id = id; }
   void setNode(BNode *node) { _node = node; }
   static void setMaxX(size_t x) { _maxX = x; }

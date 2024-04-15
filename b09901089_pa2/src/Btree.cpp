@@ -7,6 +7,7 @@ void BNode::revert() {
   _parent = _bparent;
   _left = _bleft;
   _right = _bright;
+  getBlk()->setRotate(_brotate);
   return;
 }
 
@@ -14,6 +15,7 @@ void BNode::setBest() {
   _bparent = _parent;
   _bleft = _left;
   _bright = _right;
+  _brotate= getBlk()->getRotate();
   return;
 }
 

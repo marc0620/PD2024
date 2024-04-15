@@ -40,16 +40,18 @@ void floorplanner::revert() {
   return;
 }
 
-void floorplanner::checkbest() {
+bool floorplanner::checkbest() {
+  bool best=false;
   if(_verbose)
     cout << "curcost: " << _curcost << " bestcost: " << _bestcost << endl;
   if (_curcost < _bestcost) {
+    best=true;
     _bestcost = _curcost;
     for (auto blk : _blocks) {
       blk->getNode()->setBest();
     }
   }
-  return;
+  return best;
 }
 
 bool floorplanner::accept(int cost) {
@@ -155,7 +157,8 @@ void floorplanner::perturb(double r, double m, bool SAmode) {
       cout << cost << endl;
     if (accept(cost) || !SAmode) {
       _curcost = cost;
-      checkbest();
+      if(checkbest())
+        plotresult("p"+to_string(_time)+".svg", _blockNum - 1);
     } else {
       swapNode(bn1, bn2);
       pack();
@@ -328,7 +331,10 @@ void floorplanner::init() {
       _leaves[blk->getid()]=blk->getNode();
     }
   }
-  eval(true);
+  _curcost=eval(true);
+  checkbest();
+  cout<<"init done"<<endl;
+  cout<<"bestcost: "<<_bestcost<<endl;
 }
 
 double floorplanner::eval(bool init) {
@@ -343,8 +349,9 @@ double floorplanner::eval(bool init) {
     _avgnet=costNet;
   }
   double cost=costNet*(1-_alpha)/_avgnet+(_alpha)*costarea/_avgarea;
-  cost+=(std::max(Block::getMaxX() - _outlineX, size_t(0)) * _OOB);
-  cost+=(std::max(Block::getMaxY() - _outlineY, size_t(0)) * _OOB);
+  cost+=std::max(int(Block::getMaxX() - _outlineX), 0) * _OOB;
+  cost+=std::max(int(Block::getMaxY() - _outlineY), 0) * _OOB;
+
   cout << "costNet: " << costNet/_avgnet << " costarea: " << costarea/_avgarea << " cost "<<cost << endl;
   return cost;
 }

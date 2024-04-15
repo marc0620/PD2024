@@ -21,11 +21,11 @@ private:
   fstream _inputBlock;
   fstream _output;
   double _alpha;
-  int _outlineX, _outlineY;
+  size_t _outlineX, _outlineY;
   int _blockNum, _terminalNum, _netNum;
   map<int, BNode *> _leaves;
   // modifiable variables
-  int _OOB = 1000;
+  int _OOB = 1;
   double _bestcost = INT_MAX, _curcost = INT_MAX;
   int _first_temp = 1000000;
   double _temp = _first_temp;
@@ -50,7 +50,7 @@ public:
   int getBlkNum() { return _blockNum; }
   void SA();
   void perturb(double r, double m, bool SAmode);
-  void checkbest();
+  bool checkbest();
   void revert();
   bool accept(int cost);
   ~floorplanner(){};

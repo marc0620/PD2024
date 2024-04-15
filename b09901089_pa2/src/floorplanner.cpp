@@ -97,7 +97,7 @@ void floorplanner::perturb(double r, double m, bool SAmode) {
     if (tar == par || (_blocks[par]->getNode()->getLeft() != nullptr && _blocks[par]->getNode()->getRight() != nullptr))
       return;
     if (_verbose)
-      cout << "tar: " << tar << " par: " << par << endl;
+      cout << "tar: " << _leaves[tar]->getBlk()->getid() << " par: " << par << endl;
     map<int, BNode*>::iterator it= _leaves.begin();
     std::advance(it, tar);
     BNode *target= (*it).second;
@@ -466,8 +466,13 @@ void floorplanner::plotresult(string filename, int i) {
                << endl;
   }
   for (vector<Block *>::iterator it = _blocks.begin(); it != _blocks.end(); it++) {
-    outputplot << "<rect x=\"" << (*it)->getX1() << "\" y=\"" << (*it)->getY1() << "\" width=\"" << (*it)->getWidth() << "\" height=\"" << (*it)->getHeight() << "\" fill=\"rgba(" << 256 << "," << 0
+    if(_leaves.find((*it)->getid())!=_leaves.end())
+      outputplot << "<rect x=\"" << (*it)->getX1() << "\" y=\"" << (*it)->getY1() << "\" width=\"" << (*it)->getWidth() << "\" height=\"" << (*it)->getHeight() << "\" fill=\"rgba(" << 256 << "," << 256
                << "," << 0 << "," << 0.4 << ")\" stroke = \"black\" stroke-opacity=\"1\" stroke-width=\"1\" />" << endl;
+    else{
+      outputplot << "<rect x=\"" << (*it)->getX1() << "\" y=\"" << (*it)->getY1() << "\" width=\"" << (*it)->getWidth() << "\" height=\"" << (*it)->getHeight() << "\" fill=\"rgba(" << 256 << "," << 0
+               << "," << 0 << "," << 0.4 << ")\" stroke = \"black\" stroke-opacity=\"1\" stroke-width=\"1\" />" << endl;
+    }
     // print i to rect
     outputplot << "<text x=\"" << (*it)->getX1() + (*it)->getWidth() / 2 << "\" y=\"" << (*it)->getY1() + (*it)->getHeight() / 2
                << "\" fill=\"black\" font-size=\"20\" text-anchor=\"middle\" alignment-baseline=\"middle\">" << (*it)->getid() << "</text>" << endl;
@@ -480,6 +485,9 @@ void floorplanner::plotresult(string filename, int i) {
   outputplot << "<rect x=\"0\" y=\"0\" width=\"" << _outlineX << "\" height=\"" << _outlineY << "\" fill=\"rgba(" << 0 << "," << 0 << "," << 0 << "," << 0
              << ")\" stroke-opacity=\"1\" stroke-width=\"10\" stroke=\"black\" />" << endl;
 
+  //plot max x and y
+  outputplot << "<rect x=\"" << 0 << "\" y=\"" << 0 << "\" width=\"" << Block::getMaxX() << "\" height=\"" << Block::getMaxY() << "\" fill=\"rgba(" << 256 << "," << 0 << "," << 0 << "," << 0
+             << ")\" stroke-opacity=\"1\" stroke-width=\"3\" stroke=\"cyan\" />" << endl;
   for (auto blk : _blocks) {
     BNode *node = blk->getNode();
     BNode *left = node->getLeft();

@@ -1,4 +1,5 @@
 #include "floorplanner.h"
+#include <cstddef>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -15,6 +16,7 @@ int main(int argc, char **argv) {
     cerr << "Usage: ./Floorplanner <alpha> <input block file> " << "<input net file> <output file>" << endl;
     exit(1);
   }
+  clock_t start = clock();
   floorplanner fp(alpha, argv[2], argv[3], argv[4]);
   fp.init();
   fp.plotresult("beforepack.svg", fp.getBlkNum() - 1);
@@ -24,6 +26,8 @@ int main(int argc, char **argv) {
   fp.revert();
   fp.pack();
   fp.plotresult("result.svg", fp.getBlkNum() - 1);
-  fp.writeOutput();
+  clock_t end = clock();
+  fp.eval();
+  fp.writeOutput((double)(end - start) / CLOCKS_PER_SEC);
   return 0;
 }

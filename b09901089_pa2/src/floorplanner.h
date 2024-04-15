@@ -25,24 +25,26 @@ private:
   int _blockNum, _terminalNum, _netNum;
   map<int, BNode *> _leaves;
   // modifiable variables
-  int _OOB = 1;
+  double _OOB = 0.5;
   double _bestcost = INT_MAX, _curcost = INT_MAX;
   int _first_temp = 1000000;
   double _temp = _first_temp;
   int _time = 0;
-  double _lambda = 0.99;
+  double _lambda = 0.995;
   bool _verbose = false;
-  double _avgarea=0, _avgnet=0;
+  double _avgarea = 0, _avgnet = 0;
+  double _realcost = 0;
+  int _wirelength = 0;
 
 public:
   floorplanner(double alpha, char *inputBlk, char *inputNet, char *output);
-  void writeOutput();
+  void writeOutput(double runtime);
   void init();
   void plotresult(string filename, int i);
   void rotateBlock(Block *blk);
   void moveNode(BNode *tar, BNode *par, bool left);
   void swapNode(BNode *blk1, BNode *blk2);
-  double eval(bool init=false);
+  double eval(bool init = false);
   void pack();
   void clear();
   void packleft(BNode *cur);

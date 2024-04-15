@@ -34,18 +34,18 @@ void floorplanner::revert() {
       _tree.setRoot(blk->getNode());
     }
     if (blk->getNode()->getLeft() == nullptr && blk->getNode()->getRight() == nullptr) {
-      _leaves[blk->getid()]=blk->getNode();
+      _leaves[blk->getid()] = blk->getNode();
     }
   }
   return;
 }
 
 bool floorplanner::checkbest() {
-  bool best=false;
-  if(_verbose)
+  bool best = false;
+  if (_verbose)
     cout << "curcost: " << _curcost << " bestcost: " << _bestcost << endl;
   if (_curcost < _bestcost) {
-    best=true;
+    best = true;
     _bestcost = _curcost;
     for (auto blk : _blocks) {
       blk->getNode()->setBest();
@@ -78,7 +78,7 @@ void floorplanner::perturb(double r, double m, bool SAmode) {
     rotateBlock(_blocks[idx]);
     pack();
     double cost = eval();
-    if(_verbose)
+    if (_verbose)
       cout << cost << endl;
     if (accept(cost) || !SAmode) {
       _curcost = cost;
@@ -93,12 +93,12 @@ void floorplanner::perturb(double r, double m, bool SAmode) {
       cout << "move ";
     int tar = rand() % _leaves.size();
     int par = rand() % _blockNum;
-    map<int, BNode*>::iterator it;
+    map<int, BNode *>::iterator it;
     int tarid;
     for (int i = 0; i < _blockNum; i++) {
-      it=_leaves.begin();
+      it = _leaves.begin();
       std::advance(it, tar);
-      tarid=it->first;
+      tarid = it->first;
       if (tarid != par && (_blocks[par]->getNode()->getLeft() == nullptr || _blocks[par]->getNode()->getRight() == nullptr))
         break;
       par = rand() % _blockNum;
@@ -107,7 +107,7 @@ void floorplanner::perturb(double r, double m, bool SAmode) {
       return;
     if (_verbose)
       cout << "tar: " << it->second->getBlk()->getid() << " par: " << par << endl;
-    BNode *target= (*it).second;
+    BNode *target = (*it).second;
     bool origleft = target->getParent()->getLeft() == target;
     BNode *origpar = target->getParent();
     BNode *parent = _blocks[par]->getNode();
@@ -122,7 +122,7 @@ void floorplanner::perturb(double r, double m, bool SAmode) {
     moveNode(target, parent, left);
     pack();
     double cost = eval();
-    if(_verbose)
+    if (_verbose)
       cout << cost << endl;
     if (accept(cost) || !SAmode) {
       _curcost = cost;
@@ -153,12 +153,12 @@ void floorplanner::perturb(double r, double m, bool SAmode) {
     swapNode(bn1, bn2);
     pack();
     double cost = eval();
-    if(_verbose)
+    if (_verbose)
       cout << cost << endl;
     if (accept(cost) || !SAmode) {
       _curcost = cost;
-      if(checkbest())
-        plotresult("p"+to_string(_time)+".svg", _blockNum - 1);
+      if (checkbest())
+        plotresult("p" + to_string(_time) + ".svg", _blockNum - 1);
     } else {
       swapNode(bn1, bn2);
       pack();
@@ -326,15 +326,15 @@ void floorplanner::init() {
     // }
     // cout << endl;
   }
-  for(auto blk: _blocks){
-    if(blk->getNode()->getLeft()==nullptr && blk->getNode()->getRight()==nullptr){
-      _leaves[blk->getid()]=blk->getNode();
+  for (auto blk : _blocks) {
+    if (blk->getNode()->getLeft() == nullptr && blk->getNode()->getRight() == nullptr) {
+      _leaves[blk->getid()] = blk->getNode();
     }
   }
-  _curcost=eval(true);
+  _curcost = eval(true);
   checkbest();
-  cout<<"init done"<<endl;
-  cout<<"bestcost: "<<_bestcost<<endl;
+  cout << "init done" << endl;
+  cout << "bestcost: " << _bestcost << endl;
 }
 
 double floorplanner::eval(bool init) {
@@ -343,23 +343,24 @@ double floorplanner::eval(bool init) {
     costNet += (*it)->calcHPWL();
   }
 
-  int costarea=Block::getMaxX()*Block::getMaxY();
-  if(init){
-    _avgarea=costarea;
-    _avgnet=costNet;
+  int costarea = Block::getMaxX() * Block::getMaxY();
+  if (init) {
+    _avgarea = costarea;
+    _avgnet = costNet;
   }
-  double cost=costNet*(1-_alpha)/_avgnet+(_alpha)*costarea/_avgarea;
-  cost+=std::max(int(Block::getMaxX() - _outlineX), 0) * _OOB;
-  cost+=std::max(int(Block::getMaxY() - _outlineY), 0) * _OOB;
-
-  cout << "costNet: " << costNet/_avgnet << " costarea: " << costarea/_avgarea << " cost "<<cost << endl;
+  double cost = costNet * (1 - _alpha) / _avgnet + (_alpha)*costarea / _avgarea;
+  cost += std::max(int(Block::getMaxX() - _outlineX), 0) * _OOB;
+  cost += std::max(int(Block::getMaxY() - _outlineY), 0) * _OOB;
+  _realcost = double(costNet * (1 - _alpha) + (_alpha)*costarea);
+  _wirelength = costNet;
+  cout << "costNet: " << costNet / _avgnet << " costarea: " << costarea / _avgarea << " cost " << cost << endl;
   return cost;
 }
 
 void floorplanner::swapNode(BNode *n1, BNode *n2) {
-  if(_tree.getRoot()==n1)
+  if (_tree.getRoot() == n1)
     _tree.setRoot(n2);
-  else if(_tree.getRoot()==n2)
+  else if (_tree.getRoot() == n2)
     _tree.setRoot(n1);
   BNode *temp = n1->getParent();
   if (temp != nullptr) {
@@ -396,17 +397,17 @@ void floorplanner::swapNode(BNode *n1, BNode *n2) {
   n1->setRight(n2->getRight());
   n2->setRight(temp);
 
-  bool n1leaf=(_leaves[n1->getBlk()->getid()]!=nullptr);
-  bool n2leaf=(_leaves[n2->getBlk()->getid()]!=nullptr);
-  
-  if(n1leaf){
-    _leaves[n2->getBlk()->getid()]=n2;
-  }else{
+  bool n1leaf = (_leaves[n1->getBlk()->getid()] != nullptr);
+  bool n2leaf = (_leaves[n2->getBlk()->getid()] != nullptr);
+
+  if (n1leaf) {
+    _leaves[n2->getBlk()->getid()] = n2;
+  } else {
     _leaves.erase(n2->getBlk()->getid());
   }
-  if(n2leaf){
-    _leaves[n1->getBlk()->getid()]=n1;
-  }else{
+  if (n2leaf) {
+    _leaves[n1->getBlk()->getid()] = n1;
+  } else {
     _leaves.erase(n1->getBlk()->getid());
   }
 
@@ -430,11 +431,11 @@ void floorplanner::moveNode(BNode *tar, BNode *par, bool left) {
     }
     par->setRight(tar);
   }
-  if(_leaves.find(par->getBlk()->getid())!=_leaves.end())
+  if (_leaves.find(par->getBlk()->getid()) != _leaves.end())
     _leaves.erase(par->getBlk()->getid());
-  if(_leaves.find(tar->getParent()->getBlk()->getid())!= _leaves.end() && tar->getParent()->getLeft()==nullptr && tar->getParent()->getRight()==nullptr)
-    _leaves[tar->getParent()->getBlk()->getid()]=tar->getParent();
-  
+  if (_leaves.find(tar->getParent()->getBlk()->getid()) != _leaves.end() && tar->getParent()->getLeft() == nullptr && tar->getParent()->getRight() == nullptr)
+    _leaves[tar->getParent()->getBlk()->getid()] = tar->getParent();
+
   tar->setParent(par);
   return;
 }
@@ -457,7 +458,7 @@ void floorplanner::SA() {
     else
       r = 0.7, m = 0.2;
     perturb(0.1, 0.1, true);
-    if(_verbose)
+    if (_verbose)
       plotresult("p" + to_string(_time) + ".svg", _blockNum - 1);
     _time++;
     _temp *= _lambda;
@@ -469,7 +470,12 @@ void floorplanner::SA() {
 IO functions
 */
 
-void floorplanner::writeOutput() {
+void floorplanner::writeOutput(double runtime) {
+  _output << _realcost << "\n";
+  _output << _wirelength << "\n";
+  _output << Block::getMaxX() * Block::getMaxY() << "\n";
+  _output << Block::getMaxX() << " " << Block::getMaxY() << "\n";
+  _output << runtime << "\n";
   for (vector<Block *>::iterator it = _blocks.begin(); it != _blocks.end(); it++) {
     _output << *(*it);
   }
@@ -486,14 +492,14 @@ void floorplanner::plotresult(string filename, int i) {
                << endl;
   }
   for (vector<Block *>::iterator it = _blocks.begin(); it != _blocks.end(); it++) {
-    if((*it)==nullptr)
+    if ((*it) == nullptr)
       exit(1);
-    if(_leaves.find((*it)->getid())!=_leaves.end())
-      outputplot << "<rect x=\"" << (*it)->getX1() << "\" y=\"" << (*it)->getY1() << "\" width=\"" << (*it)->getWidth() << "\" height=\"" << (*it)->getHeight() << "\" fill=\"rgba(" << 256 << "," << 256
-               << "," << 0 << "," << 0.4 << ")\" stroke = \"black\" stroke-opacity=\"1\" stroke-width=\"1\" />" << endl;
-    else{
+    if (_leaves.find((*it)->getid()) != _leaves.end())
+      outputplot << "<rect x=\"" << (*it)->getX1() << "\" y=\"" << (*it)->getY1() << "\" width=\"" << (*it)->getWidth() << "\" height=\"" << (*it)->getHeight() << "\" fill=\"rgba(" << 256 << ","
+                 << 256 << "," << 0 << "," << 0.4 << ")\" stroke = \"black\" stroke-opacity=\"1\" stroke-width=\"1\" />" << endl;
+    else {
       outputplot << "<rect x=\"" << (*it)->getX1() << "\" y=\"" << (*it)->getY1() << "\" width=\"" << (*it)->getWidth() << "\" height=\"" << (*it)->getHeight() << "\" fill=\"rgba(" << 256 << "," << 0
-               << "," << 0 << "," << 0.4 << ")\" stroke = \"black\" stroke-opacity=\"1\" stroke-width=\"1\" />" << endl;
+                 << "," << 0 << "," << 0.4 << ")\" stroke = \"black\" stroke-opacity=\"1\" stroke-width=\"1\" />" << endl;
     }
     // print i to rect
     outputplot << "<text x=\"" << (*it)->getX1() + (*it)->getWidth() / 2 << "\" y=\"" << (*it)->getY1() + (*it)->getHeight() / 2
@@ -507,7 +513,7 @@ void floorplanner::plotresult(string filename, int i) {
   outputplot << "<rect x=\"0\" y=\"0\" width=\"" << _outlineX << "\" height=\"" << _outlineY << "\" fill=\"rgba(" << 0 << "," << 0 << "," << 0 << "," << 0
              << ")\" stroke-opacity=\"1\" stroke-width=\"10\" stroke=\"black\" />" << endl;
 
-  //plot max x and y
+  // plot max x and y
   outputplot << "<rect x=\"" << 0 << "\" y=\"" << 0 << "\" width=\"" << Block::getMaxX() << "\" height=\"" << Block::getMaxY() << "\" fill=\"rgba(" << 256 << "," << 0 << "," << 0 << "," << 0
              << ")\" stroke-opacity=\"1\" stroke-width=\"3\" stroke=\"cyan\" />" << endl;
   for (auto blk : _blocks) {

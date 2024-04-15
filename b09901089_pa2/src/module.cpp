@@ -5,7 +5,7 @@
 size_t Block::_maxX = 0;
 size_t Block::_maxY = 0;
 std::fstream &operator<<(std::fstream &fs, Block &blk) {
-  fs << blk.getName() << " " << blk.getX1() << " " << blk.getY1() << " " << blk.getX2() << " " << blk.getY2() << std::endl;
+  fs << blk.getName() << " " << blk.getX1() << " " << blk.getY1() << " " << blk.getX2() << " " << blk.getY2() << "\n";
   return fs;
 }
 double Net::calcHPWL() {

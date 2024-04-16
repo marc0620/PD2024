@@ -19,9 +19,7 @@ int main(int argc, char **argv) {
   clock_t start = clock();
   floorplanner fp(alpha, argv[2], argv[3], argv[4]);
   fp.init();
-  fp.plotresult("beforepack.svg", fp.getBlkNum() - 1);
-  fp.pack();
-  fp.plotresult("afterpack.svg", fp.getBlkNum() - 1);
+  fp.plotresult("init.svg", fp.getBlkNum() - 1);
   fp.SA();
   fp.revert();
   fp.pack();
@@ -29,5 +27,6 @@ int main(int argc, char **argv) {
   clock_t end = clock();
   fp.eval();
   fp.writeOutput((double)(end - start) / CLOCKS_PER_SEC);
+  cout << "r m s " << fp.getrnum() << " " << fp.getmnum() << " " << fp.getsnum() << endl;
   return 0;
 }

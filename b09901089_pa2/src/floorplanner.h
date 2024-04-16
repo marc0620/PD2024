@@ -25,19 +25,24 @@ private:
   int _blockNum, _terminalNum, _netNum;
   map<int, BNode *> _leaves;
   // modifiable variables
-  double _OOB = 0.5;
+  double _OOB = 0.1;
   double _bestcost = INT_MAX, _curcost = INT_MAX;
-  int _first_temp = 1000000;
+  int _first_temp = 100000;
   double _temp = _first_temp;
   int _time = 0;
-  double _lambda = 0.995;
+  double _lambda = 0.99992;
   bool _verbose = false;
   double _avgarea = 0, _avgnet = 0;
   double _realcost = 0;
   int _wirelength = 0;
+  int _badcount = 0;
+  int _rnum, _mnum, _snum;
 
 public:
   floorplanner(double alpha, char *inputBlk, char *inputNet, char *output);
+  int getrnum() { return _rnum; }
+  int getmnum() { return _mnum; }
+  int getsnum() { return _snum; }
   void writeOutput(double runtime);
   void init();
   void plotresult(string filename, int i);
@@ -54,7 +59,7 @@ public:
   void perturb(double r, double m, bool SAmode);
   bool checkbest();
   void revert();
-  bool accept(int cost);
+  bool accept(double cost);
   ~floorplanner(){};
 };
 

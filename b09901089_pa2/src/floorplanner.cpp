@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <string>
 #include <vector>
+#define SCALE 5
 extern std::fstream &operator<<(std::fstream &fs, Block &blk);
 
 floorplanner::floorplanner(double alpha, char *inputBlk, char *inputNet, char *output) : _alpha(alpha) {
@@ -54,10 +55,12 @@ bool floorplanner::checkbest() {
   return best;
 }
 
-bool floorplanner::accept(int cost) {
-  int delta = cost - _curcost;
+bool floorplanner::accept(double cost) {
+  double delta = cost - _curcost;
   double prob = exp(-delta / _temp);
   double rv = double(rand()) / RAND_MAX;
+
+  cout << "curcost " << _curcost << " cost " << cost << " accept prob: " << prob << " rv " << rv << endl;
   if (rv < prob) {
     return true;
   } else {
@@ -66,12 +69,14 @@ bool floorplanner::accept(int cost) {
 }
 void floorplanner::perturb(double r, double m, bool SAmode) {
   double rv = double(rand()) / RAND_MAX;
+  cout << "rv " << rv << " ";
   if (_verbose)
     cout << "p" << _time << ": ";
   if (rv < r) {
     // rotate
-    if (_verbose)
-      cout << "rotate ";
+
+    // if (_verbose)
+    cout << "rotate \n";
     int idx = rand() % _blockNum;
     if (_verbose)
       cout << "idx: " << idx << endl;
@@ -81,6 +86,7 @@ void floorplanner::perturb(double r, double m, bool SAmode) {
     if (_verbose)
       cout << cost << endl;
     if (accept(cost) || !SAmode) {
+      _rnum++;
       _curcost = cost;
       checkbest();
     } else {
@@ -89,8 +95,9 @@ void floorplanner::perturb(double r, double m, bool SAmode) {
     }
   } else if (rv < r + m) {
     // move
-    if (_verbose)
-      cout << "move ";
+
+    // if (_verbose)
+    cout << "move \n";
     int tar = rand() % _leaves.size();
     int par = rand() % _blockNum;
     map<int, BNode *>::iterator it;
@@ -117,7 +124,7 @@ void floorplanner::perturb(double r, double m, bool SAmode) {
     } else if (parent->getRight() != nullptr) {
       left = true;
     } else {
-      left = rand() % 2;
+      left = (rand() % 3 > 0);
     }
     moveNode(target, parent, left);
     pack();
@@ -125,6 +132,7 @@ void floorplanner::perturb(double r, double m, bool SAmode) {
     if (_verbose)
       cout << cost << endl;
     if (accept(cost) || !SAmode) {
+      _mnum++;
       _curcost = cost;
       checkbest();
     } else {
@@ -133,15 +141,15 @@ void floorplanner::perturb(double r, double m, bool SAmode) {
     }
   } else {
     // swap
-    if (_verbose)
-      cout << "swap ";
-    int n1 = rand() % _blockNum;
-    int n2 = rand() % _blockNum;
+    // if (_verbose)
+    cout << "swap \n";
+    int n1 = (rand() % (_blockNum - 1)) + 1;
+    int n2 = (rand() % (_blockNum - 1)) + 1;
     for (int i = 0; i < _blockNum; i++) {
       if (n1 != n2 && (_blocks[n1]->getNode()->getLeft() == nullptr || _blocks[n1]->getNode()->getRight() == nullptr) &&
           (_blocks[n2]->getNode()->getLeft() == nullptr || _blocks[n2]->getNode()->getRight() == nullptr))
         break;
-      n2 = rand() % _blockNum;
+      n2 = (rand() % (_blockNum - 1)) + 1;
     }
     if (n1 == n2) {
       return;
@@ -156,6 +164,7 @@ void floorplanner::perturb(double r, double m, bool SAmode) {
     if (_verbose)
       cout << cost << endl;
     if (accept(cost) || !SAmode) {
+      _snum++;
       _curcost = cost;
       if (checkbest())
         plotresult("p" + to_string(_time) + ".svg", _blockNum - 1);
@@ -288,7 +297,7 @@ void floorplanner::init() {
     _nets.push_back(net);
   }
 
-  sort(_blocks.begin(), _blocks.end(), [](Block *a, Block *b) { return *a > *b; });
+  // sort(_blocks.begin(), _blocks.end(), [](Block *a, Block *b) { return *a > *b; });
   for (int i = 0; i < _blockNum; i++) {
     _blocks[i]->setid(i);
   }
@@ -449,19 +458,22 @@ void floorplanner::SA() {
   while (_temp > 1) {
     double r, m;
     // schedule
-    if (_temp > _first_temp * 0.1)
-      r = 0.1, m = 0.2;
-    else if (_temp > _first_temp * 0.005)
-      r = 0.2, m = 0.3;
-    else if (_temp > _first_temp * 0.00005)
-      r = 0.4, m = 0.3;
-    else
-      r = 0.7, m = 0.2;
-    perturb(0.1, 0.1, true);
+    // if (_temp > _first_temp * 0.01)
+    //  r = 0.3, m = 0.3;
+    // else if (_temp > _first_temp * 0.005)
+    //  r = 0.4, m = 0.3;
+    // else if (_temp > _first_temp * 0.0001)
+    //  r = 0.6, m = 0.2;
+    // else
+    //  r = 0.8, m = 0.1;
+    r = 0.4, m = 0.3;
+    perturb(r, m, true);
     if (_verbose)
       plotresult("p" + to_string(_time) + ".svg", _blockNum - 1);
     _time++;
     _temp *= _lambda;
+    if (_time % 1000 == 0)
+      revert();
   }
   return;
 }
@@ -495,14 +507,14 @@ void floorplanner::plotresult(string filename, int i) {
     if ((*it) == nullptr)
       exit(1);
     if (_leaves.find((*it)->getid()) != _leaves.end())
-      outputplot << "<rect x=\"" << (*it)->getX1() << "\" y=\"" << (*it)->getY1() << "\" width=\"" << (*it)->getWidth() << "\" height=\"" << (*it)->getHeight() << "\" fill=\"rgba(" << 256 << ","
-                 << 256 << "," << 0 << "," << 0.4 << ")\" stroke = \"black\" stroke-opacity=\"1\" stroke-width=\"1\" />" << endl;
+      outputplot << "<rect x=\"" << (*it)->getX1() / SCALE << "\" y=\"" << (*it)->getY1() / SCALE << "\" width=\"" << (*it)->getWidth() / SCALE << "\" height=\"" << (*it)->getHeight() / SCALE
+                 << "\" fill=\"rgba(" << 256 << "," << 256 << "," << 0 << "," << 0.4 << ")\" stroke = \"black\" stroke-opacity=\"1\" stroke-width=\"1\" />" << endl;
     else {
-      outputplot << "<rect x=\"" << (*it)->getX1() << "\" y=\"" << (*it)->getY1() << "\" width=\"" << (*it)->getWidth() << "\" height=\"" << (*it)->getHeight() << "\" fill=\"rgba(" << 256 << "," << 0
-                 << "," << 0 << "," << 0.4 << ")\" stroke = \"black\" stroke-opacity=\"1\" stroke-width=\"1\" />" << endl;
+      outputplot << "<rect x=\"" << (*it)->getX1() / SCALE << "\" y=\"" << (*it)->getY1() / SCALE << "\" width=\"" << (*it)->getWidth() / SCALE << "\" height=\"" << (*it)->getHeight() / SCALE
+                 << "\" fill=\"rgba(" << 256 << "," << 0 << "," << 0 << "," << 0.4 << ")\" stroke = \"black\" stroke-opacity=\"1\" stroke-width=\"1\" />" << endl;
     }
     // print i to rect
-    outputplot << "<text x=\"" << (*it)->getX1() + (*it)->getWidth() / 2 << "\" y=\"" << (*it)->getY1() + (*it)->getHeight() / 2
+    outputplot << "<text x=\"" << (*it)->getX1() / SCALE + (*it)->getWidth() / SCALE / 2 << "\" y=\"" << (*it)->getY1() / SCALE + (*it)->getHeight() / SCALE / 2
                << "\" fill=\"black\" font-size=\"20\" text-anchor=\"middle\" alignment-baseline=\"middle\">" << (*it)->getid() << "</text>" << endl;
     if (count == i)
       break;
@@ -510,23 +522,25 @@ void floorplanner::plotresult(string filename, int i) {
   }
   // plot tree structure with left right link
   // plot outline
-  outputplot << "<rect x=\"0\" y=\"0\" width=\"" << _outlineX << "\" height=\"" << _outlineY << "\" fill=\"rgba(" << 0 << "," << 0 << "," << 0 << "," << 0
+  outputplot << "<rect x=\"0\" y=\"0\" width=\"" << _outlineX / SCALE << "\" height=\"" << _outlineY / SCALE << "\" fill=\"rgba(" << 0 << "," << 0 << "," << 0 << "," << 0
              << ")\" stroke-opacity=\"1\" stroke-width=\"10\" stroke=\"black\" />" << endl;
 
   // plot max x and y
-  outputplot << "<rect x=\"" << 0 << "\" y=\"" << 0 << "\" width=\"" << Block::getMaxX() << "\" height=\"" << Block::getMaxY() << "\" fill=\"rgba(" << 256 << "," << 0 << "," << 0 << "," << 0
-             << ")\" stroke-opacity=\"1\" stroke-width=\"3\" stroke=\"cyan\" />" << endl;
+  outputplot << "<rect x=\"" << 0 << "\" y=\"" << 0 << "\" width=\"" << Block::getMaxX() / SCALE << "\" height=\"" << Block::getMaxY() / SCALE << "\" fill=\"rgba(" << 256 << "," << 0 << "," << 0
+             << "," << 0 << ")\" stroke-opacity=\"1\" stroke-width=\"3\" stroke=\"cyan\" />" << endl;
   for (auto blk : _blocks) {
     BNode *node = blk->getNode();
     BNode *left = node->getLeft();
     BNode *right = node->getRight();
     if (left != nullptr) {
-      outputplot << "<line x1=\"" << (blk->getX1() + blk->getX2()) / 2 << "\" y1=\"" << (blk->getY1() + blk->getY2()) / 2 << "\" x2=\"" << (left->getBlk()->getX1() + left->getBlk()->getX2()) / 2
-                 << "\" y2=\"" << (left->getBlk()->getY1() + left->getBlk()->getY2()) / 2 << "\" stroke=\"blue\" stroke-width=\"3\" />" << endl;
+      outputplot << "<line x1=\"" << (blk->getX1() + blk->getX2()) / 2 / SCALE << "\" y1=\"" << (blk->getY1() + blk->getY2()) / 2 / SCALE << "\" x2=\""
+                 << (left->getBlk()->getX1() + left->getBlk()->getX2()) / 2 / SCALE << "\" y2=\"" << (left->getBlk()->getY1() + left->getBlk()->getY2()) / 2 / SCALE
+                 << "\" stroke=\"blue\" stroke-width=\"3\" />" << endl;
     }
     if (right != nullptr) {
-      outputplot << "<line x1=\"" << (blk->getX1() + blk->getX2()) / 2 << "\" y1=\"" << (blk->getY1() + blk->getY2()) / 2 << "\" x2=\"" << (right->getBlk()->getX1() + right->getBlk()->getX2()) / 2
-                 << "\" y2=\"" << (right->getBlk()->getY1() + right->getBlk()->getY2()) / 2 << "\" stroke=\"green\" stroke-width=\"3\" />" << endl;
+      outputplot << "<line x1=\"" << (blk->getX1() + blk->getX2()) / 2 / SCALE << "\" y1=\"" << (blk->getY1() + blk->getY2()) / 2 / SCALE << "\" x2=\""
+                 << (right->getBlk()->getX1() + right->getBlk()->getX2()) / 2 / SCALE << "\" y2=\"" << (right->getBlk()->getY1() + right->getBlk()->getY2()) / 2 / SCALE
+                 << "\" stroke=\"green\" stroke-width=\"3\" />" << endl;
     }
   }
 

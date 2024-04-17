@@ -475,7 +475,7 @@ void floorplanner::rotateBlock(Block *blk) {
 }
 
 void floorplanner::SA() {
-  while (_time <= 100000) {
+  while (_time <= _maxiter) {
     double r, m;
     // schedule
     // if (_temp > _first_temp * 0.01)

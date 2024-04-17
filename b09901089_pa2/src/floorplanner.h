@@ -31,13 +31,14 @@ private:
   double _temp = _first_temp;
   int _time = 0;
   double _lambda = 0.9995;
+  int _maxiter=500000;
   bool _verbose = false;
   double _avgarea = 0, _avgnet = 0;
   double _realcost = 0;
   int _wirelength = 0;
   int _badcount = 0;
   int _rnum, _mnum, _snum;
-  int _initmethod = 0;   // 0: row by row 1: complete tree
+  int _initmethod = 1;   // 0: row by row 1: complete tree
 
 public:
   floorplanner(double alpha, char *inputBlk, char *inputNet, char *output);

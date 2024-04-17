@@ -197,31 +197,31 @@ void floorplanner::pack() {
     Block *blk;
     if (cur->getLeft() != nullptr) {   // traverse to left
       cur = cur->getLeft();
-      if (_verbose)
-        cout << "l" << cur->getBlk()->getid() << " ";
+      // if (_verbose)
+      //   cout << "l" << cur->getBlk()->getid() << " ";
       packleft(cur);
     } else if (cur->getRight() != nullptr) {   // traverse to right
       cur = cur->getRight();
-      if (_verbose)
-        cout << "r" << cur->getBlk()->getid() << " ";
+      // if (_verbose)
+      //   cout << "r" << cur->getBlk()->getid() << " ";
       packright(cur);
     } else {
       while (cur->getParent() != nullptr && (cur->getParent()->getRight() == cur || cur->getParent()->getRight() == nullptr)) {
         cur = cur->getParent();
-        if (_verbose)
-          cout << "bt" << cur->getBlk()->getid() << " ";
+        // if (_verbose)
+        //   cout << "bt" << cur->getBlk()->getid() << " ";
       }
       if (cur->getParent() == nullptr) {
-        if (_verbose)
-          cout << "end: blocknum: " << _blockNum << " i: " << i << "id " << cur->getBlk()->getid() << endl;
+        // if (_verbose)
+        //   cout << "end: blocknum: " << _blockNum << " i: " << i << "id " << cur->getBlk()->getid() << endl;
         return;
       }
       // else: traverse to right(same as above)
-      if (_verbose)
-        cout << "bt" << cur->getParent()->getBlk()->getid() << " " << endl;
+      // if (_verbose)
+      //  cout << "bt" << cur->getParent()->getBlk()->getid() << " " << endl;
       cur = cur->getParent()->getRight();
-      if (_verbose)
-        cout << "r" << cur->getBlk()->getid() << " ";
+      // if (_verbose)
+      //   cout << "r" << cur->getBlk()->getid() << " ";
       packright(cur);
     }
   }
@@ -301,10 +301,10 @@ void floorplanner::init() {
   for (int i = 0; i < _blockNum; i++) {
     _blocks[i]->setid(i);
   }
-  for (int i = 0; i < _blockNum; i++) {
-    if (_blocks[i]->getWidth() < _blocks[i]->getHeight())
-      _blocks[i]->Rotate();
-  }
+  // for (int i = 0; i < _blockNum; i++) {
+  //   if (_blocks[i]->getWidth() < _blocks[i]->getHeight())
+  //     _blocks[i]->Rotate();
+  // }
   _tree.setRoot(new BNode(_blocks[0]));
   _blocks[0]->setPos(0, 0, _blocks[0]->getWidth(), _blocks[0]->getHeight());
   _blocks[0]->setNode(_tree.getRoot());
@@ -313,28 +313,41 @@ void floorplanner::init() {
   BNode *home = _tree.getRoot();
   BNode *cur = home;
   _tree.updateContour(cur);
+  // for (int i = 1; i < _blockNum; i++) {
+  //   BNode *node = new BNode(_blocks[i]);
+  //   if (cur->getBlk()->getX2() + _blocks[i]->getWidth() >= _outlineX) {
+  //     // didn't fit outline x
+  //     cur = home;
+  //     cur->setRight(node);
+  //     node->setParent(cur);
+  //     home = node;
+  //     packright(node);
+  //   } else {
+  //     // fit outline x
+  //     cur->setLeft(node);
+  //     node->setParent(cur);
+  //     packleft(node);
+  //   }
+  //   cur = node;
+  //   _blocks[i]->setNode(node);
+  //   // for (map<int, CSeg *>::iterator it = _tree.getHContour().begin(); it != _tree.getHContour().end(); it++) {
+  //   //   cout << " " << it->second->getX1() << " " << it->second->getX2() << " " << it->second->getY() << endl;
+  //   // }
+  //   // cout << endl;
+  // }
   for (int i = 1; i < _blockNum; i++) {
     BNode *node = new BNode(_blocks[i]);
-    if (cur->getBlk()->getX2() + _blocks[i]->getWidth() >= _outlineX) {
-      // didn't fit outline x
-      cur = home;
-      cur->setRight(node);
-      node->setParent(cur);
-      home = node;
-      packright(node);
-    } else {
-      // fit outline x
-      cur->setLeft(node);
-      node->setParent(cur);
-      packleft(node);
-    }
-    cur = node;
     _blocks[i]->setNode(node);
-    // for (map<int, CSeg *>::iterator it = _tree.getHContour().begin(); it != _tree.getHContour().end(); it++) {
-    //   cout << " " << it->second->getX1() << " " << it->second->getX2() << " " << it->second->getY() << endl;
-    // }
-    // cout << endl;
+    node->setParent(_blocks[(i - 1) / 2]->getNode());
+    if (i % 2 == 1)
+      _blocks[(i - 1) / 2]->getNode()->setLeft(node);
+    else
+      _blocks[(i - 1) / 2]->getNode()->setRight(node);
   }
+  pack();
+  eval();
+  plotresult("init.svg", _blockNum - 1);
+
   for (auto blk : _blocks) {
     if (blk->getNode()->getLeft() == nullptr && blk->getNode()->getRight() == nullptr) {
       _leaves[blk->getid()] = blk->getNode();
@@ -426,8 +439,12 @@ void floorplanner::swapNode(BNode *n1, BNode *n2) {
 void floorplanner::moveNode(BNode *tar, BNode *par, bool left) {
   if (tar->getParent()->getLeft() == tar) {
     tar->getParent()->setLeft(nullptr);
+    if (tar->getParent()->getRight() == nullptr)
+      _leaves[tar->getParent()->getBlk()->getid()] = tar->getParent();
   } else {
     tar->getParent()->setRight(nullptr);
+    if (tar->getParent()->getLeft() == nullptr)
+      _leaves[tar->getParent()->getBlk()->getid()] = tar->getParent();
   }
   if (left) {
     if (par->getLeft() != nullptr) {
@@ -455,7 +472,7 @@ void floorplanner::rotateBlock(Block *blk) {
 }
 
 void floorplanner::SA() {
-  while (_temp > 1) {
+  while (_time <= 100000) {
     double r, m;
     // schedule
     // if (_temp > _first_temp * 0.01)
@@ -466,7 +483,7 @@ void floorplanner::SA() {
     //  r = 0.6, m = 0.2;
     // else
     //  r = 0.8, m = 0.1;
-    r = 0.4, m = 0.3;
+    r = 0.3, m = 0.4;
     perturb(r, m, true);
     if (_verbose)
       plotresult("p" + to_string(_time) + ".svg", _blockNum - 1);

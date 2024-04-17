@@ -313,40 +313,43 @@ void floorplanner::init() {
   BNode *home = _tree.getRoot();
   BNode *cur = home;
   _tree.updateContour(cur);
-  // for (int i = 1; i < _blockNum; i++) {
-  //   BNode *node = new BNode(_blocks[i]);
-  //   if (cur->getBlk()->getX2() + _blocks[i]->getWidth() >= _outlineX) {
-  //     // didn't fit outline x
-  //     cur = home;
-  //     cur->setRight(node);
-  //     node->setParent(cur);
-  //     home = node;
-  //     packright(node);
-  //   } else {
-  //     // fit outline x
-  //     cur->setLeft(node);
-  //     node->setParent(cur);
-  //     packleft(node);
-  //   }
-  //   cur = node;
-  //   _blocks[i]->setNode(node);
-  //   // for (map<int, CSeg *>::iterator it = _tree.getHContour().begin(); it != _tree.getHContour().end(); it++) {
-  //   //   cout << " " << it->second->getX1() << " " << it->second->getX2() << " " << it->second->getY() << endl;
-  //   // }
-  //   // cout << endl;
-  // }
-  for (int i = 1; i < _blockNum; i++) {
-    BNode *node = new BNode(_blocks[i]);
-    _blocks[i]->setNode(node);
-    node->setParent(_blocks[(i - 1) / 2]->getNode());
-    if (i % 2 == 1)
-      _blocks[(i - 1) / 2]->getNode()->setLeft(node);
-    else
-      _blocks[(i - 1) / 2]->getNode()->setRight(node);
+  if (_initmethod == 0) {
+    for (int i = 1; i < _blockNum; i++) {
+      BNode *node = new BNode(_blocks[i]);
+      if (cur->getBlk()->getX2() + _blocks[i]->getWidth() >= _outlineX) {
+        // didn't fit outline x
+        cur = home;
+        cur->setRight(node);
+        node->setParent(cur);
+        home = node;
+        packright(node);
+      } else {
+        // fit outline x
+        cur->setLeft(node);
+        node->setParent(cur);
+        packleft(node);
+      }
+      cur = node;
+      _blocks[i]->setNode(node);
+      // for (map<int, CSeg *>::iterator it = _tree.getHContour().begin(); it != _tree.getHContour().end(); it++) {
+      //   cout << " " << it->second->getX1() << " " << it->second->getX2() << " " << it->second->getY() << endl;
+      // }
+      // cout << endl;
+    }
+  } else if (_initmethod == 1) {
+    for (int i = 1; i < _blockNum; i++) {
+      BNode *node = new BNode(_blocks[i]);
+      _blocks[i]->setNode(node);
+      node->setParent(_blocks[(i - 1) / 2]->getNode());
+      if (i % 2 == 1)
+        _blocks[(i - 1) / 2]->getNode()->setLeft(node);
+      else
+        _blocks[(i - 1) / 2]->getNode()->setRight(node);
+    }
+    pack();
+    eval();
+    plotresult("init.svg", _blockNum - 1);
   }
-  pack();
-  eval();
-  plotresult("init.svg", _blockNum - 1);
 
   for (auto blk : _blocks) {
     if (blk->getNode()->getLeft() == nullptr && blk->getNode()->getRight() == nullptr) {

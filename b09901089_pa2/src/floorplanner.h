@@ -30,15 +30,15 @@ private:
   int _first_temp = 100000;
   double _temp = _first_temp;
   int _time = 0;
-  double _lambda = 0.9995;
-  double _marate = 0.99;
+  double _lambda = 0.995;
+  double _marate = 1;
   int _maxiter = 100000;
   bool _verbose = false;
   double _avgarea = 0, _avgnet = 0;
   double _realcost = 0;
   int _wirelength = 0;
   int _badcount = 0;
-  int _rnum, _mnum, _snum;
+  int _rnum=0, _mnum=0, _snum=0;
   int _initmethod = 1;   // 0: row by row 1: complete tree
 
 public:

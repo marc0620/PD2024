@@ -219,3 +219,5 @@ CASE_SCORE=`echo $Q_W_SCORE + $T_W_SCORE | bc`
 echo "[Eval] SCORE = QUALITY_SCORE*0.8 + RUNTIME_SCORE*0.2"
 echo "             = $QUALITY_SCORE*0.8 + $RUNTIME_SCORE*0.2"
 echo "             = $CASE_SCORE"
+
+echo "$QUALITY_SCORE" >> result_record.txt

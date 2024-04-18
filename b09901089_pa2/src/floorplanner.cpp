@@ -143,13 +143,13 @@ void floorplanner::perturb(double r, double m, bool SAmode) {
     // swap
     // if (_verbose)
     // cout << "swap \n";
-    int n1 = (rand() % (_blockNum - 1)) + 1;
-    int n2 = (rand() % (_blockNum - 1)) + 1;
+    int n1 = (rand() % (_blockNum ));
+    int n2 = (rand() % (_blockNum ));
     for (int i = 0; i < _blockNum; i++) {
       if (n1 != n2 && (_blocks[n1]->getNode()->getLeft() == nullptr || _blocks[n1]->getNode()->getRight() == nullptr) &&
           (_blocks[n2]->getNode()->getLeft() == nullptr || _blocks[n2]->getNode()->getRight() == nullptr))
         break;
-      n2 = (rand() % (_blockNum - 1)) + 1;
+      n2 = (rand() % _blockNum);
     }
     if (n1 == n2) {
       return;
@@ -297,19 +297,26 @@ void floorplanner::init() {
     _nets.push_back(net);
   }
 
-  // sort(_blocks.begin(), _blocks.end(), [](Block *a, Block *b) { return *a > *b; });
+  sort(_blocks.begin(), _blocks.end(), [](Block *a, Block *b) { return *a > *b; });
   // int largestid = 0;
   // for (int i = 1; i < _blockNum; i++) {
-  //  if (_blocks[i] > _blocks[largestid])
+
+  //  if (_blocks[i]->getArea() > _blocks[largestid]->getArea()){
   //    largestid = i;
+  //  }
   //}
+  //cout<<"largestid: "<<largestid<<endl;
   // Block *tempblk = _blocks[0];
   //_blocks[0] = _blocks[largestid];
   //_blocks[largestid] = tempblk;
-  // for (int i = 0; i < _blockNum; i++) {
-  //   if (_blocks[i]->getWidth() < _blocks[i]->getHeight())
-  //     _blocks[i]->Rotate();
-  // }
+
+
+
+
+   for (int i = 0; i < _blockNum; i++) {
+     if (_blocks[i]->getWidth() < _blocks[i]->getHeight())
+       _blocks[i]->Rotate();
+   }
   for (int i = 0; i < _blockNum; i++) {
     _blocks[i]->setid(i);
   }

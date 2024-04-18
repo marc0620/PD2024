@@ -60,7 +60,7 @@ bool floorplanner::accept(double cost) {
   double prob = exp(-delta / _temp);
   double rv = double(rand()) / RAND_MAX;
 
-  cout << "curcost " << _curcost << " cost " << cost << " accept prob: " << prob << " rv " << rv << endl;
+  // cout << "curcost " << _curcost << " cost " << cost << " accept prob: " << prob << " rv " << rv << endl;
   if (rv < prob) {
     return true;
   } else {
@@ -69,14 +69,14 @@ bool floorplanner::accept(double cost) {
 }
 void floorplanner::perturb(double r, double m, bool SAmode) {
   double rv = double(rand()) / RAND_MAX;
-  cout << "rv " << rv << " ";
+  // cout << "rv " << rv << " ";
   if (_verbose)
     cout << "p" << _time << ": ";
   if (rv < r) {
     // rotate
 
     // if (_verbose)
-    cout << "rotate \n";
+    // cout << "rotate \n";
     int idx = rand() % _blockNum;
     if (_verbose)
       cout << "idx: " << idx << endl;
@@ -97,7 +97,7 @@ void floorplanner::perturb(double r, double m, bool SAmode) {
     // move
 
     // if (_verbose)
-    cout << "move \n";
+    // cout << "move \n";
     int tar = rand() % _leaves.size();
     int par = rand() % _blockNum;
     map<int, BNode *>::iterator it;
@@ -142,7 +142,7 @@ void floorplanner::perturb(double r, double m, bool SAmode) {
   } else {
     // swap
     // if (_verbose)
-    cout << "swap \n";
+    // cout << "swap \n";
     int n1 = (rand() % (_blockNum - 1)) + 1;
     int n2 = (rand() % (_blockNum - 1)) + 1;
     for (int i = 0; i < _blockNum; i++) {
@@ -378,7 +378,7 @@ double floorplanner::eval(bool init) {
   cost += std::max(int(Block::getMaxY() - _outlineY), 0) * _OOB;
   _realcost = double(costNet * (1 - _alpha) + (_alpha)*costarea);
   _wirelength = costNet;
-  cout << "costNet: " << costNet / _avgnet << " costarea: " << costarea / _avgarea << " cost " << cost << endl;
+  // cout << "costNet: " << costNet / _avgnet << " costarea: " << costarea / _avgarea << " cost " << cost << endl;
   return cost;
 }
 
@@ -478,15 +478,12 @@ void floorplanner::SA() {
   while (_time <= _maxiter) {
     double r, m;
     // schedule
-    // if (_temp > _first_temp * 0.01)
-    //  r = 0.3, m = 0.3;
-    // else if (_temp > _first_temp * 0.005)
-    //  r = 0.4, m = 0.3;
-    // else if (_temp > _first_temp * 0.0001)
-    //  r = 0.6, m = 0.2;
-    // else
-    //  r = 0.8, m = 0.1;
-    r = 0.3, m = 0.4;
+    if (_temp > _first_temp * 0.001)
+      r = 0.3, m = 0.4;
+    else if (_temp > _first_temp * 0.000001)
+      r = 0.4, m = 0.3;
+    else
+      r = 0.6, m = 0.2;
     perturb(r, m, true);
     if (_verbose)
       plotresult("p" + to_string(_time) + ".svg", _blockNum - 1);

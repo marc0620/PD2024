@@ -25,13 +25,13 @@ private:
   int _blockNum, _terminalNum, _netNum;
   map<int, BNode *> _leaves;
   // modifiable variables
-  double _OOB = 0.1;
+  double _OOB = 1;
   double _bestcost = INT_MAX, _curcost = INT_MAX;
   int _first_temp = 100000;
   double _temp = _first_temp;
   int _time = 0;
   double _lambda = 0.9995;
-  int _maxiter=500000;
+  int _maxiter = 100000;
   bool _verbose = false;
   double _avgarea = 0, _avgnet = 0;
   double _realcost = 0;

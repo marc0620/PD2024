@@ -31,6 +31,7 @@ private:
   double _temp = _first_temp;
   int _time = 0;
   double _lambda = 0.9995;
+  double _marate = 0.99;
   int _maxiter = 100000;
   bool _verbose = false;
   double _avgarea = 0, _avgnet = 0;

@@ -298,13 +298,13 @@ void floorplanner::init() {
   }
 
   // sort(_blocks.begin(), _blocks.end(), [](Block *a, Block *b) { return *a > *b; });
-  for (int i = 0; i < _blockNum; i++) {
-    _blocks[i]->setid(i);
-  }
   // for (int i = 0; i < _blockNum; i++) {
-  //   if (_blocks[i]->getWidth() < _blocks[i]->getHeight())
-  //     _blocks[i]->Rotate();
+  //   _blocks[i]->setid(i);
   // }
+  //  for (int i = 0; i < _blockNum; i++) {
+  //    if (_blocks[i]->getWidth() < _blocks[i]->getHeight())
+  //      _blocks[i]->Rotate();
+  //  }
   _tree.setRoot(new BNode(_blocks[0]));
   _blocks[0]->setPos(0, 0, _blocks[0]->getWidth(), _blocks[0]->getHeight());
   _blocks[0]->setNode(_tree.getRoot());
@@ -359,7 +359,7 @@ void floorplanner::init() {
   _curcost = eval(true);
   checkbest();
   cout << "init done" << endl;
-  cout << "bestcost: " << _bestcost << endl;
+  // cout << "bestcost: " << _bestcost << endl;
 }
 
 double floorplanner::eval(bool init) {
@@ -378,6 +378,8 @@ double floorplanner::eval(bool init) {
   cost += std::max(int(Block::getMaxY() - _outlineY), 0) * _OOB;
   _realcost = double(costNet * (1 - _alpha) + (_alpha)*costarea);
   _wirelength = costNet;
+  _avgarea = _marate * _avgarea + (1 - _marate) * costarea;
+  _avgnet = _marate * _avgnet + (1 - _marate) * costNet;
   // cout << "costNet: " << costNet / _avgnet << " costarea: " << costarea / _avgarea << " cost " << cost << endl;
   return cost;
 }
@@ -498,7 +500,6 @@ void floorplanner::SA() {
 /*
 IO functions
 */
-
 void floorplanner::writeOutput(double runtime) {
   _output << _realcost << "\n";
   _output << _wirelength << "\n";
@@ -509,7 +510,6 @@ void floorplanner::writeOutput(double runtime) {
     _output << *(*it);
   }
 }
-
 void floorplanner::plotresult(string filename, int i) {
   fstream outputplot;
   outputplot.open(filename, std::ios::out);

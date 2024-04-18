@@ -297,21 +297,21 @@ void floorplanner::init() {
     _nets.push_back(net);
   }
 
-  sort(_blocks.begin(), _blocks.end(), [](Block *a, Block *b) { return *a > *b; });
-  int largestid = 0;
-  for (int i = 1; i < _blockNum; i++) {
-    if (_blocks[i] > _blocks[largestid])
-      largestid = i;
-  }
+  // sort(_blocks.begin(), _blocks.end(), [](Block *a, Block *b) { return *a > *b; });
+  // int largestid = 0;
+  // for (int i = 1; i < _blockNum; i++) {
+  //  if (_blocks[i] > _blocks[largestid])
+  //    largestid = i;
+  //}
   // Block *tempblk = _blocks[0];
   //_blocks[0] = _blocks[largestid];
   //_blocks[largestid] = tempblk;
+  // for (int i = 0; i < _blockNum; i++) {
+  //   if (_blocks[i]->getWidth() < _blocks[i]->getHeight())
+  //     _blocks[i]->Rotate();
+  // }
   for (int i = 0; i < _blockNum; i++) {
     _blocks[i]->setid(i);
-  }
-  for (int i = 0; i < _blockNum; i++) {
-    if (_blocks[i]->getWidth() < _blocks[i]->getHeight())
-      _blocks[i]->Rotate();
   }
   _tree.setRoot(new BNode(_blocks[0]));
   _blocks[0]->setPos(0, 0, _blocks[0]->getWidth(), _blocks[0]->getHeight());

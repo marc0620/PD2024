@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <string>
 #include <vector>
-#define SCALE 5
+#define SCALE 15
 extern std::fstream &operator<<(std::fstream &fs, Block &blk);
 
 floorplanner::floorplanner(double alpha, char *inputBlk, char *inputNet, char *output) : _alpha(alpha) {
@@ -297,23 +297,13 @@ void floorplanner::init() {
     _nets.push_back(net);
   }
 
-  //sort(_blocks.begin(), _blocks.end(), [](Block *a, Block *b) { return *a > *b; });
-  // int largestid = 0;
-  // for (int i = 1; i < _blockNum; i++) {
-
-  //  if (_blocks[i]->getArea() > _blocks[largestid]->getArea()){
-  //    largestid = i;
-  //  }
-  //}
-  // cout<<"largestid: "<<largestid<<endl;
-  // Block *tempblk = _blocks[0];
-  //_blocks[0] = _blocks[largestid];
-  //_blocks[largestid] = tempblk;
-
+  sort(_blocks.begin(), _blocks.end(), [](Block *a, Block *b) { return *a > *b; });
   for (int i = 0; i < _blockNum; i++) {
-    if (_blocks[i]->getWidth() < _blocks[i]->getHeight())
+    if (_blocks[i]->getWidth() > _blocks[i]->getHeight())
       _blocks[i]->Rotate();
   }
+
+
   for (int i = 0; i < _blockNum; i++) {
     _blocks[i]->setid(i);
   }

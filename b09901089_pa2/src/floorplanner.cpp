@@ -303,7 +303,6 @@ void floorplanner::init() {
       _blocks[i]->Rotate();
   }
 
-
   for (int i = 0; i < _blockNum; i++) {
     _blocks[i]->setid(i);
   }
@@ -482,12 +481,17 @@ void floorplanner::SA() {
   while (_time <= _maxiter) {
     double r, m;
     // schedule
-    if (_temp > _first_temp * 0.001)
-      r = 0.3, m = 0.4;
-    else if (_temp > _first_temp * 0.000001)
-      r = 0.4, m = 0.3;
-    else
-      r = 0.6, m = 0.2;
+    if (_greedygood) {
+      r = 0;
+      m = 0;
+    } else {
+      if (_temp > _first_temp * 0.001)
+        r = 0.3, m = 0.4;
+      else if (_temp > _first_temp * 0.000001)
+        r = 0.4, m = 0.3;
+      else
+        r = 0.6, m = 0.2;
+    }
     perturb(r, m, true);
     if (_verbose)
       plotresult("p" + to_string(_time) + ".svg", _blockNum - 1);
@@ -497,6 +501,41 @@ void floorplanner::SA() {
       revert();
   }
   return;
+}
+
+void floorplanner::greedy() {
+  _tree.setRoot(new BNode(_blocks[0]));
+  _blocks[0]->setPos(0, 0, _blocks[0]->getWidth(), _blocks[0]->getHeight());
+  _blocks[0]->setNode(_tree.getRoot());
+  Block::setMaxX(_blocks[0]->getWidth());
+  Block::setMaxY(_blocks[0]->getHeight());
+  BNode *home = _tree.getRoot();
+  BNode *cur = home;
+  _tree.updateContour(cur);
+  if (_initmethod == 0) {
+    for (int i = 1; i < _blockNum; i++) {
+      BNode *node = new BNode(_blocks[i]);
+      if (cur->getBlk()->getX2() + _blocks[i]->getWidth() >= _outlineX) {
+        // didn't fit outline x
+        cur = home;
+        cur->setRight(node);
+        node->setParent(cur);
+        home = node;
+        packright(node);
+      } else {
+        // fit outline x
+        cur->setLeft(node);
+        node->setParent(cur);
+        packleft(node);
+      }
+      cur = node;
+      _blocks[i]->setNode(node);
+      // for (map<int, CSeg *>::iterator it = _tree.getHContour().begin(); it != _tree.getHContour().end(); it++) {
+      //   cout << " " << it->second->getX1() << " " << it->second->getX2() << " " << it->second->getY() << endl;
+      // }
+      // cout << endl;
+    }
+  }
 }
 
 /*

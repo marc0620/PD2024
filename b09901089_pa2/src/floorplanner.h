@@ -40,6 +40,7 @@ private:
   int _badcount = 0;
   int _rnum = 0, _mnum = 0, _snum = 0;
   int _initmethod = 0;   // 0: row by row 1: complete tree
+  bool _greedygood = false;
 
 public:
   floorplanner(double alpha, char *inputBlk, char *inputNet, char *output);
@@ -63,6 +64,7 @@ public:
   bool checkbest();
   void revert();
   bool accept(double cost);
+  void greedy();
   ~floorplanner(){};
 };
 

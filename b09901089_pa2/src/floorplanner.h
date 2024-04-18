@@ -38,7 +38,7 @@ private:
   double _realcost = 0;
   int _wirelength = 0;
   int _badcount = 0;
-  int _rnum=0, _mnum=0, _snum=0;
+  int _rnum = 0, _mnum = 0, _snum = 0;
   int _initmethod = 1;   // 0: row by row 1: complete tree
 
 public:

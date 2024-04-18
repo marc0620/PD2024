@@ -143,8 +143,8 @@ void floorplanner::perturb(double r, double m, bool SAmode) {
     // swap
     // if (_verbose)
     // cout << "swap \n";
-    int n1 = (rand() % (_blockNum ));
-    int n2 = (rand() % (_blockNum ));
+    int n1 = (rand() % (_blockNum));
+    int n2 = (rand() % (_blockNum));
     for (int i = 0; i < _blockNum; i++) {
       if (n1 != n2 && (_blocks[n1]->getNode()->getLeft() == nullptr || _blocks[n1]->getNode()->getRight() == nullptr) &&
           (_blocks[n2]->getNode()->getLeft() == nullptr || _blocks[n2]->getNode()->getRight() == nullptr))
@@ -305,18 +305,15 @@ void floorplanner::init() {
   //    largestid = i;
   //  }
   //}
-  //cout<<"largestid: "<<largestid<<endl;
+  // cout<<"largestid: "<<largestid<<endl;
   // Block *tempblk = _blocks[0];
   //_blocks[0] = _blocks[largestid];
   //_blocks[largestid] = tempblk;
 
-
-
-
-   for (int i = 0; i < _blockNum; i++) {
-     if (_blocks[i]->getWidth() < _blocks[i]->getHeight())
-       _blocks[i]->Rotate();
-   }
+  for (int i = 0; i < _blockNum; i++) {
+    if (_blocks[i]->getWidth() < _blocks[i]->getHeight())
+      _blocks[i]->Rotate();
+  }
   for (int i = 0; i < _blockNum; i++) {
     _blocks[i]->setid(i);
   }
@@ -555,7 +552,7 @@ void floorplanner::plotresult(string filename, int i) {
   // plot tree structure with left right link
   // plot outline
   outputplot << "<rect x=\"0\" y=\"0\" width=\"" << _outlineX / SCALE << "\" height=\"" << _outlineY / SCALE << "\" fill=\"rgba(" << 0 << "," << 0 << "," << 0 << "," << 0
-             << ")\" stroke-opacity=\"1\" stroke-width=\"10\" stroke=\"black\" />" << endl;
+             << ")\" stroke-opacity=\"1\" stroke-width=\"3\" stroke=\"black\" />" << endl;
 
   // plot max x and y
   outputplot << "<rect x=\"" << 0 << "\" y=\"" << 0 << "\" width=\"" << Block::getMaxX() / SCALE << "\" height=\"" << Block::getMaxY() / SCALE << "\" fill=\"rgba(" << 256 << "," << 0 << "," << 0

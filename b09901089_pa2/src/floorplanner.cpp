@@ -10,7 +10,6 @@
 #include <stdlib.h>
 #include <string>
 #include <vector>
-#define SCALE 15
 extern std::fstream &operator<<(std::fstream &fs, Block &blk);
 
 floorplanner::floorplanner(double alpha, char *inputBlk, char *inputNet, char *output) : _alpha(alpha) {
@@ -192,6 +191,10 @@ void floorplanner::pack() {
   if (_verbose)
     cout << cur->getBlk()->getid() << endl;
   cur->getBlk()->setPos(0, 0, cur->getBlk()->getWidth(), cur->getBlk()->getHeight());
+  if (cur->getBlk()->getX2() > Block::getMaxX())
+    Block::setMaxX(cur->getBlk()->getX2());
+  if (cur->getBlk()->getY2() > Block::getMaxY())
+    Block::setMaxY(cur->getBlk()->getY2());
   _tree.updateContour(cur);
   for (int i = 1; i < _blockNum; i++) {
     Block *blk;
@@ -296,11 +299,19 @@ void floorplanner::init() {
     }
     _nets.push_back(net);
   }
-
-  sort(_blocks.begin(), _blocks.end(), [](Block *a, Block *b) { return *a > *b; });
-  for (int i = 0; i < _blockNum; i++) {
-    if (_blocks[i]->getWidth() > _blocks[i]->getHeight())
-      _blocks[i]->Rotate();
+  
+  if(_initsort)
+    sort(_blocks.begin(), _blocks.end(), [](Block *a, Block *b) { return *a > *b; });
+  if(_initrotate==1){
+    for (int i = 0; i < _blockNum; i++) {
+      if (_blocks[i]->getWidth() > _blocks[i]->getHeight())
+        _blocks[i]->Rotate();
+    }
+  }else if(_initrotate==2){
+    for (int i = 0; i < _blockNum; i++) {
+      if (_blocks[i]->getWidth() < _blocks[i]->getHeight())
+        _blocks[i]->Rotate();
+    }
   }
 
   for (int i = 0; i < _blockNum; i++) {
@@ -565,39 +576,39 @@ void floorplanner::plotresult(string filename, int i) {
     if ((*it) == nullptr)
       exit(1);
     if (_leaves.find((*it)->getid()) != _leaves.end())
-      outputplot << "<rect x=\"" << (*it)->getX1() / SCALE << "\" y=\"" << (*it)->getY1() / SCALE << "\" width=\"" << (*it)->getWidth() / SCALE << "\" height=\"" << (*it)->getHeight() / SCALE
+      outputplot << "<rect x=\"" << (*it)->getX1() / _scale << "\" y=\"" << (*it)->getY1() / _scale << "\" width=\"" << (*it)->getWidth() / _scale << "\" height=\"" << (*it)->getHeight() / _scale
                  << "\" fill=\"rgba(" << 256 << "," << 256 << "," << 0 << "," << 0.4 << ")\" stroke = \"black\" stroke-opacity=\"1\" stroke-width=\"1\" />" << endl;
     else {
-      outputplot << "<rect x=\"" << (*it)->getX1() / SCALE << "\" y=\"" << (*it)->getY1() / SCALE << "\" width=\"" << (*it)->getWidth() / SCALE << "\" height=\"" << (*it)->getHeight() / SCALE
+      outputplot << "<rect x=\"" << (*it)->getX1() / _scale << "\" y=\"" << (*it)->getY1() / _scale << "\" width=\"" << (*it)->getWidth() / _scale << "\" height=\"" << (*it)->getHeight() / _scale
                  << "\" fill=\"rgba(" << 256 << "," << 0 << "," << 0 << "," << 0.4 << ")\" stroke = \"black\" stroke-opacity=\"1\" stroke-width=\"1\" />" << endl;
     }
     // print i to rect
-    outputplot << "<text x=\"" << (*it)->getX1() / SCALE + (*it)->getWidth() / SCALE / 2 << "\" y=\"" << (*it)->getY1() / SCALE + (*it)->getHeight() / SCALE / 2
-               << "\" fill=\"black\" font-size=\"20\" text-anchor=\"middle\" alignment-baseline=\"middle\">" << (*it)->getid() << "</text>" << endl;
+    outputplot << "<text x=\"" << (*it)->getX1() / _scale + (*it)->getWidth() / _scale / 2 << "\" y=\"" << (*it)->getY1() / _scale + (*it)->getHeight() / _scale / 2
+               << "\" fill=\"black\" font-size=\"20\" text-anchor=\"middle\" alignment-baseline=\"middle\">" << (*it)->getName() << "</text>" << endl;
     if (count == i)
       break;
     count++;
   }
   // plot tree structure with left right link
   // plot outline
-  outputplot << "<rect x=\"0\" y=\"0\" width=\"" << _outlineX / SCALE << "\" height=\"" << _outlineY / SCALE << "\" fill=\"rgba(" << 0 << "," << 0 << "," << 0 << "," << 0
+  outputplot << "<rect x=\"0\" y=\"0\" width=\"" << _outlineX / _scale << "\" height=\"" << _outlineY / _scale << "\" fill=\"rgba(" << 0 << "," << 0 << "," << 0 << "," << 0
              << ")\" stroke-opacity=\"1\" stroke-width=\"3\" stroke=\"black\" />" << endl;
 
   // plot max x and y
-  outputplot << "<rect x=\"" << 0 << "\" y=\"" << 0 << "\" width=\"" << Block::getMaxX() / SCALE << "\" height=\"" << Block::getMaxY() / SCALE << "\" fill=\"rgba(" << 256 << "," << 0 << "," << 0
+  outputplot << "<rect x=\"" << 0 << "\" y=\"" << 0 << "\" width=\"" << Block::getMaxX() / _scale << "\" height=\"" << Block::getMaxY() / _scale << "\" fill=\"rgba(" << 256 << "," << 0 << "," << 0
              << "," << 0 << ")\" stroke-opacity=\"1\" stroke-width=\"3\" stroke=\"cyan\" />" << endl;
   for (auto blk : _blocks) {
     BNode *node = blk->getNode();
     BNode *left = node->getLeft();
     BNode *right = node->getRight();
     if (left != nullptr) {
-      outputplot << "<line x1=\"" << (blk->getX1() + blk->getX2()) / 2 / SCALE << "\" y1=\"" << (blk->getY1() + blk->getY2()) / 2 / SCALE << "\" x2=\""
-                 << (left->getBlk()->getX1() + left->getBlk()->getX2()) / 2 / SCALE << "\" y2=\"" << (left->getBlk()->getY1() + left->getBlk()->getY2()) / 2 / SCALE
+      outputplot << "<line x1=\"" << (blk->getX1() + blk->getX2()) / 2 / _scale << "\" y1=\"" << (blk->getY1() + blk->getY2()) / 2 / _scale << "\" x2=\""
+                 << (left->getBlk()->getX1() + left->getBlk()->getX2()) / 2 / _scale << "\" y2=\"" << (left->getBlk()->getY1() + left->getBlk()->getY2()) / 2 / _scale
                  << "\" stroke=\"blue\" stroke-width=\"3\" />" << endl;
     }
     if (right != nullptr) {
-      outputplot << "<line x1=\"" << (blk->getX1() + blk->getX2()) / 2 / SCALE << "\" y1=\"" << (blk->getY1() + blk->getY2()) / 2 / SCALE << "\" x2=\""
-                 << (right->getBlk()->getX1() + right->getBlk()->getX2()) / 2 / SCALE << "\" y2=\"" << (right->getBlk()->getY1() + right->getBlk()->getY2()) / 2 / SCALE
+      outputplot << "<line x1=\"" << (blk->getX1() + blk->getX2()) / 2 / _scale << "\" y1=\"" << (blk->getY1() + blk->getY2()) / 2 / _scale << "\" x2=\""
+                 << (right->getBlk()->getX1() + right->getBlk()->getX2()) / 2 / _scale << "\" y2=\"" << (right->getBlk()->getY1() + right->getBlk()->getY2()) / 2 / _scale
                  << "\" stroke=\"green\" stroke-width=\"3\" />" << endl;
     }
   }

@@ -31,17 +31,21 @@ private:
   double _temp = _first_temp;
   int _time = 0;
   double _lambda = 0.995;
-  double _marate = 1;
-  int _maxiter = 100000;
+  double _lambda1 = 0.9999;
+  double _lambda2 = 0.9999;
+  double _marate = 0.99;
+  int _maxiter = 300000;
   bool _verbose = false;
+  int _checkpoint=10000; 
+  double _previouscost = 0;
   double _avgarea = 0, _avgnet = 0;
   double _realcost = 0;
   int _wirelength = 0;
   int _badcount = 0;
   int _rnum = 0, _mnum = 0, _snum = 0;
-  int _initmethod = 1;   // 0: row by row 1: complete tree
-  bool _initsort = 0;
-  int _initrotate = 2; //0: no rotate 1: vertical 2: horizontal
+  int _initmethod = 0;   // 0: row by row 1: complete tree
+  bool _initsort = 1;
+  int _initrotate = 1; //0: no rotate 1: vertical 2: horizontal
   bool _greedygood = 0;
   int _scale=2;
 

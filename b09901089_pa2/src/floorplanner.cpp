@@ -390,8 +390,10 @@ double floorplanner::eval(bool init) {
   cost += std::max(int(Block::getMaxY() - _outlineY), 0) * _OOB;
   _realcost = double(costNet * (1 - _alpha) + (_alpha)*costarea);
   _wirelength = costNet;
-  _avgarea = _marate * _avgarea + (1 - _marate) * costarea;
-  _avgnet = _marate * _avgnet + (1 - _marate) * costNet;
+  if(_time<1000){
+    _avgarea = _marate * _avgarea + (1 - _marate) * costarea;
+    _avgnet = _marate * _avgnet + (1 - _marate) * costNet;
+  }
   // cout << "costNet: " << costNet / _avgnet << " costarea: " << costarea / _avgarea << " cost " << cost << endl;
   return cost;
 }
@@ -492,14 +494,17 @@ void floorplanner::SA() {
   while (_time <= _maxiter) {
     double r, m;
     // schedule
+    if(_temp<100){
+      _lambda=_lambda1;
+    }
     if (_greedygood) {
       r = 0;
       m = 0;
     } else {
       if (_temp > _first_temp * 0.001)
         r = 0.3, m = 0.4;
-      else if (_temp > _first_temp * 0.000001)
-        r = 0.4, m = 0.3;
+      else if (_temp > _first_temp * 0.00001)
+        r = 0.4, m = 0.4;
       else
         r = 0.6, m = 0.2;
     }
@@ -508,8 +513,14 @@ void floorplanner::SA() {
       plotresult("p" + to_string(_time) + ".svg", _blockNum - 1);
     _time++;
     _temp *= _lambda;
-    if (_time % 1000 == 0)
+    if (_time % _checkpoint == 0){
+      if(_previouscost==_curcost && _bestcost==_curcost)
+        return;
+      _previouscost=_curcost;
+    }
+    if(_time%1000==0){
       revert();
+    }
   }
   return;
 }

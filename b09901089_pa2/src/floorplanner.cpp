@@ -166,8 +166,8 @@ void floorplanner::perturb(double r, double m, bool SAmode) {
     if (accept(cost) || !SAmode) {
       _snum++;
       _curcost = cost;
-      if (checkbest())
-        plotresult("p" + to_string(_time) + ".svg", _blockNum - 1);
+      // if (checkbest())
+      //   plotresult("p" + to_string(_time) + ".svg", _blockNum - 1);
     } else {
       swapNode(bn1, bn2);
       pack();

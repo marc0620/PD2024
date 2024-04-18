@@ -297,7 +297,7 @@ void floorplanner::init() {
     _nets.push_back(net);
   }
 
-  sort(_blocks.begin(), _blocks.end(), [](Block *a, Block *b) { return *a > *b; });
+  //sort(_blocks.begin(), _blocks.end(), [](Block *a, Block *b) { return *a > *b; });
   // int largestid = 0;
   // for (int i = 1; i < _blockNum; i++) {
 

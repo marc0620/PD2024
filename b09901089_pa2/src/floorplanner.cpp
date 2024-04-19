@@ -299,7 +299,6 @@ void floorplanner::init() {
     }
     _nets.push_back(net);
   }
-  
   if(_initsort)
     sort(_blocks.begin(), _blocks.end(), [](Block *a, Block *b) { return *a > *b; });
   if(_initrotate==1){
@@ -526,18 +525,28 @@ void floorplanner::SA() {
 }
 
 void floorplanner::greedy() {
-  _tree.setRoot(new BNode(_blocks[0]));
-  _blocks[0]->setPos(0, 0, _blocks[0]->getWidth(), _blocks[0]->getHeight());
-  _blocks[0]->setNode(_tree.getRoot());
-  Block::setMaxX(_blocks[0]->getWidth());
-  Block::setMaxY(_blocks[0]->getHeight());
-  BNode *home = _tree.getRoot();
-  BNode *cur = home;
-  _tree.updateContour(cur);
-  if (_initmethod == 0) {
+  double totalarea=0;
+  for (auto blk : _blocks) {
+    totalarea+=blk->getArea();
+  }
+  for(int i=0;i<_blockNum;i++){
+    if(_blocks[i]->getWidth()<_blocks[i]->getHeight())
+      _blocks[i]->Rotate();
+  }
+  for(int i=0;i<2;i++){
+    _tree.setRoot(new BNode(_blocks[0]));
+    
+
+    _blocks[0]->setPos(0, 0, _blocks[0]->getWidth(), _blocks[0]->getHeight());
+    _blocks[0]->setNode(_tree.getRoot());
+    Block::setMaxX(_blocks[0]->getWidth());
+    Block::setMaxY(_blocks[0]->getHeight());
+    BNode *home = _tree.getRoot();
+    BNode *cur = home;
+    _tree.updateContour(cur);
     for (int i = 1; i < _blockNum; i++) {
       BNode *node = new BNode(_blocks[i]);
-      if (cur->getBlk()->getX2() + _blocks[i]->getWidth() >= _outlineX) {
+      if (cur->getBlk()->getX2() + _blocks[i]->getWidth() >= (totalarea/_outlineY)*1.1) {
         // didn't fit outline x
         cur = home;
         cur->setRight(node);
@@ -552,12 +561,28 @@ void floorplanner::greedy() {
       }
       cur = node;
       _blocks[i]->setNode(node);
-      // for (map<int, CSeg *>::iterator it = _tree.getHContour().begin(); it != _tree.getHContour().end(); it++) {
-      //   cout << " " << it->second->getX1() << " " << it->second->getX2() << " " << it->second->getY() << endl;
-      // }
-      // cout << endl;
     }
+    _curcost = eval();
+    if(Block::getMaxX()*Block::getMaxY()<1.2*totalarea){
+      _greedygood=true;
+      _first_temp=10;
+      cout<<"greedy good"<<endl;
+    }else{
+      _greedygood=false;
+      for(int i=0;i<_blockNum;i++){
+        delete _blocks[i]->getNode();
+        _blocks[i]->setNode(nullptr);
+        if(i==0)
+          _blocks[i]->Rotate();
+        else
+          _blocks[i]->setRotate(0);
+      }
+      _tree.clearContour();
+      _tree.setRoot(nullptr);
+    }
+    plotresult("greedy"+to_string(i)+".svg", _blockNum - 1);
   }
+  
 }
 
 /*

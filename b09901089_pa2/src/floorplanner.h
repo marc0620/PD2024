@@ -36,7 +36,7 @@ private:
   double _marate = 0.99;
   int _maxiter = 300000;
   bool _verbose = false;
-  int _checkpoint=10000; 
+  int _checkpoint=1000; 
   double _previouscost = 0;
   double _avgarea = 0, _avgnet = 0;
   double _realcost = 0;
@@ -47,7 +47,7 @@ private:
   bool _initsort = 1;
   int _initrotate = 1; //0: no rotate 1: vertical 2: horizontal
   bool _greedygood = 0;
-  int _scale=2;
+  int _scale=13;
 
 
 public:

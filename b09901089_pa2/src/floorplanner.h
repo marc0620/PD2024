@@ -33,12 +33,12 @@ private:
   double _lambda = 0.995;
   double _lambda1 = 0.9999;
   double _lambda2 = 0.9999;
-  double _marate = 0.99;
+  double _marate = 0.9;
   int _maxiter = 300000;
   bool _verbose = false;
   int _checkpoint=1000; 
   double _previouscost = 0;
-  double _avgarea = 0, _avgnet = 0;
+  double _avgarea = 0, _avgnet = 0, _bestarea = 0, _bestnet = 0;
   double _realcost = 0;
   int _wirelength = 0;
   int _badcount = 0;

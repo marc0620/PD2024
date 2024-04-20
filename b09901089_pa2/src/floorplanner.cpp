@@ -47,6 +47,8 @@ bool floorplanner::checkbest() {
   if (_curcost < _bestcost) {
     best = true;
     _bestcost = _curcost;
+    _bestarea = Block::getMaxX() * Block::getMaxY();
+    _bestnet = _wirelength;
     for (auto blk : _blocks) {
       blk->getNode()->setBest();
     }
@@ -383,6 +385,8 @@ double floorplanner::eval(bool init) {
   if (init) {
     _avgarea = costarea;
     _avgnet = costNet;
+    _bestarea = costarea;
+    _bestnet = costNet;
   }
   double cost = costNet * (1 - _alpha) / _avgnet + (_alpha)*costarea / _avgarea;
   cost += std::max(int(Block::getMaxX() - _outlineX), 0) * _OOB;
@@ -390,8 +394,8 @@ double floorplanner::eval(bool init) {
   _realcost = double(costNet * (1 - _alpha) + (_alpha)*costarea);
   _wirelength = costNet;
   if(_time<1000){
-    _avgarea = _marate * _avgarea + (1 - _marate) * costarea;
-    _avgnet = _marate * _avgnet + (1 - _marate) * costNet;
+    _avgarea = _marate * _avgarea + (1 - _marate) * _bestarea;
+    _avgnet = _marate * _avgnet + (1 - _marate) * _bestnet;
   }
   // cout << "costNet: " << costNet / _avgnet << " costarea: " << costarea / _avgarea << " cost " << cost << endl;
   return cost;

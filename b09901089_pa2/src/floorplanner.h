@@ -47,7 +47,7 @@ private:
   bool _initsort = 1;
   int _initrotate = 1; //0: no rotate 1: vertical 2: horizontal
   bool _greedygood = 0;
-  int _scale=13;
+  double _scale=13;
 
 
 public:

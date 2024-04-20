@@ -19,7 +19,6 @@ int main(int argc, char **argv) {
   clock_t start = clock();
   floorplanner fp(alpha, argv[2], argv[3], argv[4]);
   fp.init();
-  fp.plotresult("init.svg", fp.getBlkNum() - 1);
   fp.SA();
   fp.revert();
   fp.pack();

@@ -263,6 +263,9 @@ void floorplanner::init() {
   _inputBlock >> temp1 >> _outlineX >> _outlineY;
   _inputBlock >> temp2 >> _blockNum;
   _inputBlock >> temp3 >> _terminalNum;
+  _scale = double(_outlineX) / 1000 > double(_outlineY) / 1000 ? double(_outlineX) / 1000 : double(_outlineY) / 1000;
+  cout<<_scale<<endl;
+  _scale=(_scale<1)?1: _scale;
   _blocks.reserve(_blockNum);
   _terminals.reserve(_terminalNum);
   _nets.reserve(_terminalNum);
@@ -359,7 +362,6 @@ void floorplanner::init() {
     }
     pack();
     eval();
-    plotresult("init.svg", _blockNum - 1);
   }
 
   for (auto blk : _blocks) {
@@ -369,7 +371,6 @@ void floorplanner::init() {
   }
   _curcost = eval(true);
   checkbest();
-  cout << "init done" << endl;
   // cout << "bestcost: " << _bestcost << endl;
 }
 
@@ -496,17 +497,12 @@ void floorplanner::SA() {
     if(_temp<100){
       _lambda=_lambda1;
     }
-    if (_greedygood) {
-      r = 0;
-      m = 0;
-    } else {
-      if (_temp > _first_temp * 0.001)
-        r = 0.3, m = 0.4;
-      else if (_temp > _first_temp * 0.00001)
-        r = 0.4, m = 0.4;
-      else
-        r = 0.6, m = 0.2;
-    }
+    if (_temp > _first_temp * 0.001)
+      r = 0.3, m = 0.4;
+    else if (_temp > _first_temp * 0.00001)
+      r = 0.4, m = 0.4;
+    else
+      r = 0.6, m = 0.2;
     perturb(r, m, true);
     if (_verbose)
       plotresult("p" + to_string(_time) + ".svg", _blockNum - 1);
@@ -580,7 +576,6 @@ void floorplanner::greedy() {
       _tree.clearContour();
       _tree.setRoot(nullptr);
     }
-    plotresult("greedy"+to_string(i)+".svg", _blockNum - 1);
   }
   
 }
@@ -602,7 +597,7 @@ void floorplanner::plotresult(string filename, int i) {
   fstream outputplot;
   outputplot.open(filename, std::ios::out);
   outputplot << "<html>\n<body>" << endl;
-  outputplot << "<svg width=\"" << _outlineX + 1000 << "\" height=\"" << _outlineY + 1000 << "\" style= \" background-color:white\">" << endl;
+  outputplot << "<svg width=\"" << _outlineX/_scale + 100 << "\" height=\"" << _outlineY/_scale + 100 << "\" style= \" background-color:white\">" << endl;
   int count = 0;
   for (map<int, CSeg *>::iterator it = _tree.getHContour().begin(); it != _tree.getHContour().end(); it++) {
     outputplot << "<line x1=\"" << it->first << "\" y1=\"" << it->second->getY() << "\" x2=\"" << it->second->getX2() << "\" y2=\"" << it->second->getY() << "\" stroke=\"white\" stroke-width=\"1\" />"

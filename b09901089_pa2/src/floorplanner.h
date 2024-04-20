@@ -43,9 +43,9 @@ private:
   int _wirelength = 0;
   int _badcount = 0;
   int _rnum = 0, _mnum = 0, _snum = 0;
-  int _initmethod = 1;   // 0: row by row 1: complete tree
+  int _initmethod = 0;   // 0: row by row 1: complete tree
   bool _initsort = 1;
-  int _initrotate = 0; //0: no rotate 1: vertical 2: horizontal
+  int _initrotate = 1; //0: no rotate 1: vertical 2: horizontal
   bool _greedygood = 0;
   int _scale=13;
 

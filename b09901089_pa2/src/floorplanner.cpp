@@ -264,7 +264,6 @@ void floorplanner::init() {
   _inputBlock >> temp2 >> _blockNum;
   _inputBlock >> temp3 >> _terminalNum;
   _scale = double(_outlineX) / 1000 > double(_outlineY) / 1000 ? double(_outlineX) / 1000 : double(_outlineY) / 1000;
-  cout<<_scale<<endl;
   _scale=(_scale<1)?1: _scale;
   _blocks.reserve(_blockNum);
   _terminals.reserve(_terminalNum);

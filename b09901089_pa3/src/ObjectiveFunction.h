@@ -84,14 +84,14 @@ class Wirelength : public BaseFunction {
     // Methods
     /////////////////////////////////
     void clear_grad();
-    Wirelength(Placement &placement);
+    Wirelength(Placement &placement, double gamma);
     const double &operator()(const std::vector<Point2<double>> &input) override;
     const std::vector<Point2<double>> &Backward() override;
     void set_gamma(const double &gamma) { gamma_ = gamma; }
 
   private:
     Placement &placement_;
-    double gamma_ = 1.0;
+    double gamma_ = 10.0;
 };
 
 /**
@@ -103,11 +103,10 @@ class Density : public BaseFunction {
     /////////////////////////////////
     // Methods
     /////////////////////////////////
-    Density(Placement &placement, int mode, double M_);
+    Density(Placement &placement, int mode, double M_, double wb);
     void clear_grad();
     void clear_temp_grad();
     void init(const int &wb) {
-        wb_ = wb;
         row_num_ = (placement_.boundryTop() - placement_.boundryBottom()) / wb_ + 1;
         col_num_ = (placement_.boundryRight() - placement_.boundryLeft()) / wb_ + 1;
         bin_num_ = row_num_ * col_num_;
@@ -121,12 +120,12 @@ class Density : public BaseFunction {
 
   private:
     Placement &placement_;
-    double wb_ = 10;
     int row_num_;
     int col_num_;
     long long bin_num_;
-    double M_;
     int mode;   // 0 for bi-directional, 1 for uni-
+    double M_;
+    double wb_ = 100;
     vector<Point2<double>> temp_grad_;
 };
 
@@ -145,15 +144,18 @@ class ObjectiveFunction : public BaseFunction {
     /////////////////////////////////
     // Methods
     /////////////////////////////////
-    ObjectiveFunction(Placement &placement, double lambda, double M, int mode);
+    ObjectiveFunction(Placement &placement, double lambda, double M, int mode, double gamma, double wb);
     void setlambda(const double &lambda) { lambda_ = lambda; }
     const double &operator()(const std::vector<Point2<double>> &input) override;
     const std::vector<Point2<double>> &Backward() override;
+    double getDense() { return density_.value(); }
+    double getWire() { return wirelength_.value(); }
+
 
   private:
+    Placement placement_;
     Wirelength wirelength_;
     Density density_;
-    Placement placement_;
     double lambda_ = 1.0;
 };
 

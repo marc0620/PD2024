@@ -94,6 +94,7 @@ int main(int argc, char *argv[])
         ////////////start to edit your code /////////////
 		
 		GlobalPlacer globalPlacer(placement);
+        printf("Start to place\n");
 		globalPlacer.place();
 		globalPlacer.plotPlacementResult( "init.plt" );
 

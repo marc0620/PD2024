@@ -31,23 +31,29 @@ void GlobalPlacer::place() {
     ////////////////////////////////////////////////////////////////////
 
     // TODO: Implement your global placement algorithm here.
-    const double kAlpha = 0.01;   // Constant step size
+    const double kAlpha = 0.0001;   // Constant step size
     int mode = 0;
     double M = 0;
-    double lambda = 0.1;   // weight param
+    double lambda = 0.001;   // weight param
     double density_flexibility = 1.1;
+    double gamma = 100.0;
+    double wb=100;
 
     const size_t num_modules = _placement.numModules();   // You may modify this line.
     std::vector<Point2<double>> positions(num_modules);   // Optimization variables (positions of modules). You may modify this line.
     double area_sum = 0;
+
     for (int i = 0; i < num_modules; i++) {
+        _placement.module(i).setPosition((_placement.boundryBottom()+_placement.boundryTop())/2, (_placement.boundryLeft()+_placement.boundryRight())/2);
         positions[i].x = _placement.module(i).x();
         positions[i].y = _placement.module(i).y();
         area_sum += _placement.module(i).width() * _placement.module(i).height();
     }
+    plotPlacementResult("initplacement", false);
     M = area_sum / (_placement.boundryRight() - _placement.boundryLeft()) * (_placement.boundryTop() - _placement.boundryBottom()) * density_flexibility;
-    ObjectiveFunction objfunc(_placement, lambda, M, mode);   // Objective function
 
+    cout<<"start"<<endl;
+    ObjectiveFunction objfunc(_placement, lambda, M, mode, gamma, wb);   // Objective function
     SimpleConjugateGradient optimizer(objfunc, positions, kAlpha);
     optimizer.Initialize();
     for (int i = 0; i < 100; i++) {
@@ -56,10 +62,11 @@ void GlobalPlacer::place() {
         for (int j = 0; j < num_modules; j++) {
             _placement.module(j).setPosition(positions[j].x, positions[j].y);
         }
-        if (i % 10 == 0) {
+        if (i <10) {
             char filename[20];
             snprintf(filename, 20, "output_%d.plt", i);
             plotPlacementResult(filename, false);
+            cout << "density: "<< objfunc.getDense()<< "wirelength: " << objfunc.getWire() << endl;
         }
     }
 
